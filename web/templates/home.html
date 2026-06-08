@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <h1>Church Member Management</h1>
+
+  {% if user.is_authenticated %}
+    <p>Signed in as {{ user.email|default:user.username }}.</p>
+    <p><a href="{% url 'account_logout' %}">Log out</a></p>
+  {% else %}
+    <p><a href="{% url 'account_login' %}">Log in</a></p>
+  {% endif %}
+{% endblock %}

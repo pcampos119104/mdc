@@ -1,0 +1,28 @@
+[project]
+name = "mdc-web"
+version = "0.1.0"
+description = "Django web service for church member management"
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.1,<5.2",
+    "django-allauth>=65,<66",
+    "psycopg[binary]>=3.2,<3.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-django>=4.9,<5",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+pythonpath = ["."]
+testpaths = ["config/tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["config"]
