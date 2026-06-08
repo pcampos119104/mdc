@@ -211,6 +211,22 @@ Example:
 - Always create and commit migrations when changing models.
 - Use clear verbose names when they improve admin/readability.
 
+### Model Creation Guidelines
+
+When creating Django models for this project:
+
+- Derive fields from real source material provided by the user, such as spreadsheets, PDFs, exported forms, and existing records.
+- Prefer simple and explicit first-version models.
+- Create multiple models only when the data clearly indicates separate relationships.
+- If a separate structure does not add clear value yet, prefer integrating the fields into the main model.
+- Use English names for model classes and fields.
+- Always add docstrings to models in English.
+- Add `help_text` to model fields in Portuguese when the fields are user-facing or likely to appear in forms/admin.
+- Add `is_active` when an internal active/inactive status is useful for the system.
+- Avoid premature `choices` when the real data still shows inconsistent or evolving categories.
+- Remove or avoid ambiguous fields if the user indicates they should not be part of the first version.
+- Add tests for created models, including practical coverage for defaults, relationships, and important metadata when appropriate.
+
 ## Authentication
 
 Use `django-allauth` as the authentication package.
