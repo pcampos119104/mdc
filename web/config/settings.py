@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "allauth",
     "allauth.account",
+    "apps.members",
 ]
 
 MIDDLEWARE = [
