@@ -8,7 +8,9 @@
   {% if user.is_authenticated %}
     <p>Signed in as {{ user.email|default:user.username }}.</p>
     <p><a href="{% url 'account_logout' %}">Log out</a></p>
+    <p><a href="{% url 'account_change_password' %}">Change password</a></p>
   {% else %}
     <p><a href="{% url 'account_login' %}">Log in</a></p>
+    <p><a href="{% url 'account_reset_password' %}">Reset password</a></p>
   {% endif %}
 {% endblock %}

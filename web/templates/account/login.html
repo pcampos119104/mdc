@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+  <h1>Sign In</h1>
+
+  <form method="post" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    {{ redirect_field }}
+    {{ form.non_field_errors }}
+    {{ form.as_p }}
+    <button type="submit">Sign In</button>
+  </form>
+
+  <p><a href="{% url 'account_reset_password' %}">Forgot your password?</a></p>
+{% endblock %}
