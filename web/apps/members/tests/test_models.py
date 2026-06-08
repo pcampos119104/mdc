@@ -68,3 +68,16 @@ def test_member_phone_belongs_to_member():
 
     assert phone.member == member
     assert str(phone) == f"{member.name} - 11970478945"
+
+
+def test_member_fields_expose_help_texts():
+    """Important member fields should expose Portuguese helper texts."""
+    assert Member._meta.get_field("name").help_text == "Nome completo do membro."
+    assert (
+        Member._meta.get_field("marriage_date").help_text
+        == "Data do casamento, quando houver."
+    )
+    assert (
+        MemberPhone._meta.get_field("has_whatsapp").help_text
+        == "Indica se este telefone possui WhatsApp."
+    )
