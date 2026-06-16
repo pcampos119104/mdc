@@ -1,17 +1,57 @@
 {% extends "base/_base.html" %}
 
-{% block title %}Sign In{% endblock %}
+{% block title %}Entrar | MDC{% endblock %}
+
+{% block body_class %}bg-slate-50{% endblock %}
 
 {% block content %}
-  <h1>Sign In</h1>
+  <section class="relative overflow-hidden px-4 py-12 sm:px-6 lg:px-8">
+    <div class="absolute inset-x-0 top-0 -z-10 h-64 bg-gradient-to-br from-blue-50 via-white to-amber-50"></div>
+    <div class="mx-auto max-w-md">
+      <div class="mb-8 text-center">
+        <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-700 text-sm font-bold text-white shadow-lg shadow-blue-700/20">MDC</span>
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-slate-950">Entrar no sistema</h1>
+        <p class="mt-2 text-sm text-slate-600">Acesse a gestão de membros da igreja.</p>
+      </div>
 
-  <form method="post" action="{% url 'account_login' %}">
-    {% csrf_token %}
-    {{ redirect_field }}
-    {{ form.non_field_errors }}
-    {{ form.as_p }}
-    <button type="submit">Sign In</button>
-  </form>
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 sm:p-8">
+        <form method="post" action="{% url 'account_login' %}" class="space-y-5">
+          {% csrf_token %}
+          {{ redirect_field }}
 
-  <p><a href="{% url 'account_reset_password' %}">Forgot your password?</a></p>
+          {% if form.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">{{ form.non_field_errors|striptags }}</div>
+          {% endif %}
+
+          <div>
+            <label for="{{ form.login.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">E-mail</label>
+            <input type="email" name="{{ form.login.html_name }}" id="{{ form.login.id_for_label }}" value="{{ form.login.value|default_if_none:'' }}" autocomplete="email" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+            {% if form.login.errors %}<p class="mt-2 text-sm text-red-600">{{ form.login.errors|striptags }}</p>{% endif %}
+          </div>
+
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">Senha</label>
+            <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" autocomplete="current-password" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+            {% if form.password.errors %}<p class="mt-2 text-sm text-red-600">{{ form.password.errors|striptags }}</p>{% endif %}
+          </div>
+
+          {% if form.remember %}
+            <div class="flex items-center justify-between gap-4">
+              <label for="{{ form.remember.id_for_label }}" class="flex items-center gap-2 text-sm text-slate-600">
+                <input type="checkbox" name="{{ form.remember.html_name }}" id="{{ form.remember.id_for_label }}" class="h-4 w-4 rounded border-slate-300 bg-slate-100 text-blue-700 focus:ring-blue-600">
+                Lembrar de mim
+              </label>
+            </div>
+          {% endif %}
+
+          <button type="submit" class="w-full rounded-lg bg-blue-700 px-5 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Entrar</button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-slate-600">
+          Esqueceu sua senha?
+          <a href="{% url 'account_reset_password' %}" class="font-medium text-blue-700 hover:text-blue-800">Recuperar acesso</a>
+        </p>
+      </div>
+    </div>
+  </section>
 {% endblock %}
