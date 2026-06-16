@@ -91,13 +91,15 @@ Use:
 
 When creating views:
 
-- Prefer function-based views.
+- Prefer function-based views for simple endpoints.
 - If a view needs both `GET` and `POST`, use `django.views.View` with explicit `get()` and `post()` methods.
+- Use class-based views only when they clearly reduce complexity.
 - Do not use generic class-based views unless explicitly requested.
 - Always add docstrings to views, methods, and helper functions.
 - Keep views small and focused.
-- Move validation to forms when appropriate.
+- Use forms for validation when appropriate.
 - Do not put complex business logic directly inside templates.
+- Use services/selectors only when logic becomes non-trivial.
 
 Example:
 
@@ -162,6 +164,8 @@ Use:
 - `pytest`
 - `pytest-django`
 
+Prefer focused tests before running the full suite. When implementing a small feature, run a single relevant test before running all tests.
+
 Tests should live inside a `tests/` directory within the related app.
 
 Example:
@@ -213,7 +217,8 @@ Example:
 - Use PostgreSQL as the main database.
 - Keep models simple and explicit.
 - Do not add fields before they are needed.
-- Always create and commit migrations when changing models.
+- Always create migration when changing models
+- Never edit existing migration files manually.
 - Use clear verbose names when they improve admin/readability.
 
 ### Model Creation Guidelines
@@ -262,6 +267,10 @@ The project should be deployable with:
 Deployment-related files should be kept simple and explicit.
 
 Do not introduce Kubernetes, Terraform, Ansible, or complex infrastructure tooling unless explicitly requested.
+
+## Safety
+
+- Never modify `.env` or production configuration without approval.
 
 ## Workflow
 
