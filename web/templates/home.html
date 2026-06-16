@@ -1,16 +1,126 @@
-{% extends "base.html" %}
+{% extends "base/_base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}MDC | Gestão de membros para igrejas{% endblock %}
+
+{% block body_class %}bg-white{% endblock %}
 
 {% block content %}
-  <h1>Church Member Management</h1>
+  <div class="relative isolate overflow-hidden bg-white">
+    <div class="absolute inset-x-0 top-0 -z-10 h-96 bg-gradient-to-br from-blue-50 via-white to-amber-50"></div>
+    <div class="absolute left-1/2 top-0 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-100/60 blur-3xl"></div>
 
-  {% if user.is_authenticated %}
-    <p>Signed in as {{ user.email|default:user.username }}.</p>
-    <p><a href="{% url 'account_logout' %}">Log out</a></p>
-    <p><a href="{% url 'account_change_password' %}">Change password</a></p>
-  {% else %}
-    <p><a href="{% url 'account_login' %}">Log in</a></p>
-    <p><a href="{% url 'account_reset_password' %}">Reset password</a></p>
-  {% endif %}
+    <section class="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-18 sm:pt-14 md:gap-10 md:pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:pb-28 lg:pt-20">
+      <div>
+        <span class="mb-5 inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-800 sm:mb-6 sm:px-4 sm:text-sm">Cuidado pastoral com dados organizados</span>
+        <h1 class="max-w-3xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl md:text-5xl lg:text-6xl">Uma base segura para acompanhar cada membro da igreja.</h1>
+        <p class="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:mt-6 sm:text-lg sm:leading-8">O MDC ajuda a liderança a manter cadastros, contatos e informações essenciais em um só lugar, facilitando o acompanhamento, o suporte e o pastoreio da comunidade.</p>
+
+        <div class="mt-10 flex flex-col gap-3 sm:flex-row">
+          {% if user.is_authenticated %}
+            <a href="{% url 'account_change_password' %}" class="inline-flex w-full items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 sm:w-auto">Gerenciar minha conta</a>
+            <a href="{% url 'account_logout' %}" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:w-auto">Sair do sistema</a>
+          {% else %}
+            <a href="{% url 'account_login' %}" class="inline-flex w-full items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 sm:w-auto">Acessar o sistema</a>
+            <a href="{% url 'account_reset_password' %}" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:w-auto">Recuperar senha</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-200/80 sm:rounded-[2rem] sm:p-4">
+          <div class="rounded-2xl bg-slate-950 p-4 text-white sm:rounded-[1.5rem] sm:p-6">
+            <div class="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-blue-200">Visão da comunidade</p>
+                <p class="mt-1 text-xl font-semibold sm:text-2xl">Acompanhamento ativo</p>
+              </div>
+              <span class="w-fit rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">Organizado</span>
+            </div>
+
+            <div class="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-3 sm:gap-4">
+              <div class="rounded-2xl bg-white/10 p-4">
+                <p class="text-2xl font-bold sm:text-3xl">1</p>
+                <p class="mt-2 text-sm text-slate-300">Cadastro central</p>
+              </div>
+              <div class="rounded-2xl bg-white/10 p-4">
+                <p class="text-2xl font-bold sm:text-3xl">24h</p>
+                <p class="mt-2 text-sm text-slate-300">Acesso seguro</p>
+              </div>
+              <div class="rounded-2xl bg-white/10 p-4">
+                <p class="text-2xl font-bold sm:text-3xl">100%</p>
+                <p class="mt-2 text-sm text-slate-300">Foco pastoral</p>
+              </div>
+            </div>
+
+            <div class="mt-5 space-y-3 sm:mt-6">
+              <div class="rounded-2xl bg-white p-4 text-slate-900">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <div>
+                    <p class="font-semibold">Cadastro completo do membro</p>
+                    <p class="mt-1 text-sm text-slate-500">Dados pessoais, familiares, endereço e telefones.</p>
+                  </div>
+                  <span class="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">Atualizado</span>
+                </div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p class="font-semibold">Base preparada para busca e gestão</p>
+                <p class="mt-1 text-sm text-slate-300">Informações consistentes para apoiar decisões e acompanhamento.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-slate-200 bg-slate-50/80 py-12 sm:py-14 lg:py-16">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Feito para uma rotina simples de cuidado.</h2>
+          <p class="mt-4 text-slate-600">A página inicial apresenta o propósito do sistema e direciona rapidamente a liderança para o acesso autenticado.</p>
+        </div>
+
+        <div class="mt-8 grid gap-5 sm:mt-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+              <svg class="h-6 w-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 0 0-4-4h-1M9 20H4v-2a4 4 0 0 1 4-4h1m6-6a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm6 2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-950">Pessoas em primeiro lugar</h3>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Organize informações essenciais para que a liderança acompanhe membros com mais clareza.</p>
+          </article>
+
+          <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+              <svg class="h-6 w-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l5 5v11a2 2 0 0 1-2 2Z" /></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-950">Cadastro centralizado</h3>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Dados pessoais, contatos e endereço ficam reunidos em uma estrutura simples e fácil de manter.</p>
+          </article>
+
+          <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+              <svg class="h-6 w-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-950">Acesso protegido</h3>
+            <p class="mt-3 text-sm leading-6 text-slate-600">O acesso passa pela autenticação do sistema, com suporte a login, logout e recuperação de senha.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+      <div class="rounded-3xl bg-blue-700 px-5 py-8 text-white shadow-xl shadow-blue-700/20 sm:px-8 sm:py-10 lg:flex lg:items-center lg:justify-between lg:px-10">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">Comece pelo acesso da liderança.</h2>
+          <p class="mt-3 text-blue-100">Entre no sistema para manter os dados da comunidade organizados e prontos para acompanhamento.</p>
+        </div>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row lg:mt-0 lg:shrink-0">
+          {% if user.is_authenticated %}
+            <a href="{% url 'account_change_password' %}" class="inline-flex w-full items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-white/30 sm:w-auto">Minha conta</a>
+          {% else %}
+            <a href="{% url 'account_login' %}" class="inline-flex w-full items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-white/30 sm:w-auto">Entrar agora</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
 {% endblock %}

@@ -12,3 +12,4 @@ web/.coverage
 web/htmlcov/
 web/staticfiles/
 web/db.sqlite3
+web/node_modules/

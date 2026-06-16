@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}MDC | Gestão de Membros{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased {% block body_class %}{% endblock %}">
+    {% block header %}
+      {% include "base/_header.html" %}
+    {% endblock %}
+
+    <main>
+      {% if messages %}
+        <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+          <ul class="space-y-3">
+            {% for message in messages %}
+              <li class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800" role="alert">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+      {% include "base/_footer.html" %}
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
