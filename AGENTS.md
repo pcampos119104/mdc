@@ -186,22 +186,27 @@ For each view, test at least:
 
 ## Templates and Frontend
 
-- Use Django templates for server-rendered pages.
+- Use Django templates, Tailwind CSS, Flowbite, HTMX and Alpine.js when useful.
+- Keep templates simple and server-rendered.
+- Prefer reusable partials under `templates/includes/` or app-level `templates/<app>/partials/`.
+- Do not put business logic in templates.
+- Use Flowbite components for layout, forms, cards, tables, alerts and navigation.
+- When unsure about Flowbite component usage, use the Flowbite MCP.
 - Use HTMX only where it clearly improves UX.
 - Avoid building a SPA.
 - Keep Alpine.js usage minimal and local to the template behavior.
-- Use Tailwind CSS for styling.
-- Keep templates organized by app.
+- Keep templates organized under template directory follow by app folder name.
 
 Example:
 
-    apps/
-    └── members/
-        └── templates/
-            └── members/
-                ├── member_list.html
-                ├── member_form.html
-                └── member_confirm_delete.html
+ web/
+ └── templates/
+     └── members/
+         ├── partials/
+         │   └── _member_table.html
+         ├── member_list.html
+         ├── member_form.html
+         └── member_confirm_delete.html
 
 ## Database and Models
 
