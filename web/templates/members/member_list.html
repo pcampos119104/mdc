@@ -1,0 +1,103 @@
+{% extends "base/_base.html" %}
+
+{% block title %}Membros | MDC{% endblock %}
+
+{% block body_class %}bg-slate-50{% endblock %}
+
+{% block content %}
+  <section class="px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-blue-700">Gestao de membros</p>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Membros</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600">Consulte cadastros, telefones e enderecos da comunidade.</p>
+        </div>
+        <a href="{% url 'members:create' %}" class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Novo membro</a>
+      </div>
+
+      <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end">
+          <div class="flex-1">
+            <label for="member-search" class="mb-2 block text-sm font-medium text-slate-900">Buscar membros</label>
+            <input type="search" id="member-search" name="q" value="{{ query }}" placeholder="Nome, e-mail, CPF, telefone, cidade ou bairro" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+          </div>
+          <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Buscar</button>
+          {% if query %}
+            <a href="{% url 'members:list' %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Limpar</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th scope="col" class="px-5 py-4 font-semibold">Membro</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Contato</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Endereco</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Status</th>
+                <th scope="col" class="px-5 py-4 text-right font-semibold">Acoes</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              {% for member in members %}
+                <tr class="align-top hover:bg-slate-50/70">
+                  <td class="px-5 py-4">
+                    <p class="font-semibold text-slate-950">{{ member.name }}</p>
+                    <div class="mt-1 space-y-1 text-xs text-slate-500">
+                      {% if member.cpf %}<p>CPF: {{ member.cpf }}</p>{% endif %}
+                      {% if member.member_type %}<p>{{ member.member_type }}</p>{% endif %}
+                    </div>
+                  </td>
+                  <td class="px-5 py-4">
+                    {% if member.email %}<p class="text-slate-900">{{ member.email }}</p>{% endif %}
+                    <div class="mt-2 space-y-1">
+                      {% for phone in member.phones.all %}
+                        <p>
+                          {{ phone.number }}
+                          {% if phone.has_whatsapp %}<span class="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">WhatsApp</span>{% endif %}
+                        </p>
+                      {% empty %}
+                        <p class="text-slate-400">Sem telefone</p>
+                      {% endfor %}
+                    </div>
+                  </td>
+                  <td class="px-5 py-4">
+                    {% if member.address.city or member.address.district %}
+                      <p class="text-slate-900">{{ member.address.city|default:"Cidade nao informada" }}</p>
+                      {% if member.address.district %}<p class="mt-1 text-xs text-slate-500">{{ member.address.district }}</p>{% endif %}
+                    {% else %}
+                      <p class="text-slate-400">Sem endereco</p>
+                    {% endif %}
+                  </td>
+                  <td class="px-5 py-4">
+                    {% if member.is_active %}
+                      <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Ativo</span>
+                    {% else %}
+                      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Inativo</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex justify-end gap-2">
+                      <a href="{% url 'members:update' member.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Editar</a>
+                      <a href="{% url 'members:remove' member.pk %}" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100">Remover</a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="px-5 py-12 text-center">
+                    <p class="text-base font-semibold text-slate-950">Nenhum membro encontrado</p>
+                    <p class="mt-2 text-sm text-slate-500">Crie um novo cadastro ou ajuste a busca.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

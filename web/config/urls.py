@@ -9,4 +9,5 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path("members/", include("apps.members.urls")),
 ]

@@ -70,6 +70,33 @@ def test_member_phone_belongs_to_member():
     assert str(phone) == f"{member.name} - 11970478945"
 
 
+@pytest.mark.django_db
+def test_member_can_be_soft_deleted_restored_and_hard_deleted():
+    """Member soft delete should hide records until they are restored."""
+    member = Member.objects.create(name="Ailton Quaresma Trindade Junior")
+    member_pk = member.pk
+
+    deleted_count, deleted_by_model = member.delete()
+
+    assert deleted_count == 1
+    assert deleted_by_model == {"members.Member": 1}
+    assert not Member.objects.filter(pk=member_pk).exists()
+
+    deleted_member = Member.all_objects.get(pk=member_pk)
+    assert deleted_member.deleted_at is not None
+
+    restored_count, restored_by_model = deleted_member.restore()
+
+    assert restored_count == 1
+    assert restored_by_model == {"members.Member": 1}
+    assert Member.objects.filter(pk=member_pk).exists()
+
+    restored_member = Member.objects.get(pk=member_pk)
+    restored_member.hard_delete()
+
+    assert not Member.all_objects.filter(pk=member_pk).exists()
+
+
 def test_member_fields_expose_help_texts():
     """Important member fields should expose Portuguese helper texts."""
     assert Member._meta.get_field("name").help_text == "Nome completo do membro."
