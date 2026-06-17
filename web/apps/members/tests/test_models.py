@@ -3,8 +3,10 @@
 from datetime import date
 
 import pytest
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 
-from apps.members.models import Member, MemberAddress, MemberPhone
+from apps.members.models import Address, Member, Phone
 
 
 @pytest.mark.django_db
@@ -15,33 +17,54 @@ def test_member_can_be_created_with_initial_fields():
         registration_type="Lideranca",
         person_type="Pessoa",
         member_type="Presbitero",
-        cpf="224.060.888-98",
+        cpf="22406088898",
         birth_date=date(1982, 3, 29),
-        sex="Male",
+        sex=Member.Sex.MALE,
         nationality="Brazil",
         birthplace="Sao Paulo SP",
         email="ailtontrindade84@gmail.com",
         father_name="Ailton Quaresma Trindade",
         mother_name="Josefa Pinheiro dos Santos",
         spouse_name="Walquiria Batista dos Santos",
-        marital_status="Married",
+        marital_status=Member.MaritalStatus.MARRIED,
         marriage_date=date(2010, 5, 1),
     )
 
+    member.full_clean()
     assert member.pk is not None
     assert member.is_active is True
     assert str(member) == member.name
 
 
 @pytest.mark.django_db
+def test_member_cpf_is_unique_when_present_and_optional_when_empty():
+    """CPF should be unique only when it is informed."""
+    Member.objects.create(name="Membro sem CPF")
+    Member.objects.create(name="Outro membro sem CPF")
+    Member.objects.create(name="Membro com CPF", cpf="12345678901")
+
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            Member.objects.create(name="CPF duplicado", cpf="12345678901")
+
+
+def test_member_rejects_invalid_structured_values():
+    """Structured member fields should validate constrained values."""
+    member = Member(name="Maria Silva", cpf="123", sex="outro")
+
+    with pytest.raises(ValidationError):
+        member.full_clean()
+
+
+@pytest.mark.django_db
 def test_member_address_belongs_to_member():
     """Address should be linked to a single member."""
     member = Member.objects.create(name="Ailton Quaresma Trindade Junior")
-    address = MemberAddress.objects.create(
+    address = Address.objects.create(
         member=member,
         postal_code="04166003",
         country="Brazil",
-        state="Sao Paulo",
+        state="SP",
         city="Sao Paulo",
         street="Avenida Padre Arlindo Vieira",
         street_number="3590",
@@ -50,6 +73,7 @@ def test_member_address_belongs_to_member():
     )
 
     assert address.member == member
+    address.full_clean()
     assert str(address) == f"Address for {member.name}"
 
 
@@ -57,9 +81,9 @@ def test_member_address_belongs_to_member():
 def test_member_phone_belongs_to_member():
     """Phone numbers should be linked to a member."""
     member = Member.objects.create(name="Ailton Quaresma Trindade Junior")
-    phone = MemberPhone.objects.create(
+    phone = Phone.objects.create(
         member=member,
-        kind=MemberPhone.KIND_MOBILE,
+        kind=Phone.KIND_MOBILE,
         number="11970478945",
         is_primary=True,
         receives_sms=True,
@@ -67,7 +91,21 @@ def test_member_phone_belongs_to_member():
     )
 
     assert phone.member == member
+    phone.full_clean()
     assert str(phone) == f"{member.name} - 11970478945"
+
+
+def test_contact_data_rejects_invalid_numeric_values():
+    """Address and phone numeric fields should reject malformed values."""
+    member = Member(name="Maria Silva")
+    address = Address(member=member, postal_code="01001-000", state="Sao Paulo")
+    phone = Phone(member=member, kind=Phone.KIND_MOBILE, number="abc")
+
+    with pytest.raises(ValidationError):
+        address.full_clean()
+
+    with pytest.raises(ValidationError):
+        phone.full_clean()
 
 
 @pytest.mark.django_db
@@ -101,10 +139,14 @@ def test_member_fields_expose_help_texts():
     """Important member fields should expose Portuguese helper texts."""
     assert Member._meta.get_field("name").help_text == "Nome completo do membro."
     assert (
+        Member._meta.get_field("cpf").help_text
+        == "CPF do membro com 11 digitos, sem pontos ou traco."
+    )
+    assert (
         Member._meta.get_field("marriage_date").help_text
         == "Data do casamento, quando houver."
     )
     assert (
-        MemberPhone._meta.get_field("has_whatsapp").help_text
+        Phone._meta.get_field("has_whatsapp").help_text
         == "Indica se este telefone possui WhatsApp."
     )

@@ -2,20 +2,20 @@
 
 from django.contrib import admin
 
-from .models import Member, MemberAddress, MemberPhone
+from .models import Address, Member, Phone
 
 
-class MemberAddressInline(admin.StackedInline):
+class AddressInline(admin.StackedInline):
     """Manage a member address inside the member admin page."""
 
-    model = MemberAddress
+    model = Address
     extra = 0
 
 
-class MemberPhoneInline(admin.TabularInline):
+class PhoneInline(admin.TabularInline):
     """Manage member phone numbers inside the member admin page."""
 
-    model = MemberPhone
+    model = Phone
     extra = 0
 
 
@@ -26,19 +26,19 @@ class MemberAdmin(admin.ModelAdmin):
     list_display = ("name", "person_type", "member_type", "email", "is_active", "created_at")
     list_filter = ("person_type", "member_type", "is_active")
     search_fields = ("name", "email", "cpf", "father_name", "mother_name", "spouse_name")
-    inlines = [MemberAddressInline, MemberPhoneInline]
+    inlines = [AddressInline, PhoneInline]
 
 
-@admin.register(MemberAddress)
-class MemberAddressAdmin(admin.ModelAdmin):
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
     """Admin interface for member addresses."""
 
     list_display = ("member", "city", "state", "district")
     search_fields = ("member__name", "street", "district", "city", "state")
 
 
-@admin.register(MemberPhone)
-class MemberPhoneAdmin(admin.ModelAdmin):
+@admin.register(Phone)
+class PhoneAdmin(admin.ModelAdmin):
     """Admin interface for member phone numbers."""
 
     list_display = ("member", "kind", "number", "is_primary", "has_whatsapp")

@@ -1,9 +1,11 @@
 """Forms for member management views."""
 
+import re
+
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import Member, MemberAddress, MemberPhone
+from .models import Address, Member, Phone
 
 
 FIELD_CLASS = (
@@ -20,11 +22,16 @@ SELECT_CLASS = (
 )
 
 PHONE_KIND_CHOICES = [
-    (MemberPhone.KIND_MOBILE, "Celular"),
-    (MemberPhone.KIND_HOME, "Residencial"),
-    (MemberPhone.KIND_WORK, "Comercial"),
-    (MemberPhone.KIND_CONTACT, "Contato"),
+    (Phone.KIND_MOBILE, "Celular"),
+    (Phone.KIND_HOME, "Residencial"),
+    (Phone.KIND_WORK, "Comercial"),
+    (Phone.KIND_CONTACT, "Contato"),
 ]
+
+
+def _only_digits(value):
+    """Return only numeric characters from a user-submitted value."""
+    return re.sub(r"\D", "", value or "")
 
 
 def _apply_widget_class(field):
@@ -44,6 +51,8 @@ def _apply_widget_class(field):
 
 class MemberForm(forms.ModelForm):
     """Validate the main registration data for a member."""
+
+    cpf = forms.CharField(required=False, max_length=14, label="CPF")
 
     class Meta:
         model = Member
@@ -103,12 +112,27 @@ class MemberForm(forms.ModelForm):
         for field in self.fields.values():
             _apply_widget_class(field)
 
+    def clean_cpf(self):
+        """Store CPF with digits only while accepting common masks."""
+        cpf = self.cleaned_data.get("cpf")
 
-class MemberAddressForm(forms.ModelForm):
+        if not cpf:
+            return None
+
+        digits = _only_digits(cpf)
+        if len(digits) != 11:
+            raise forms.ValidationError("Informe um CPF com 11 digitos.")
+
+        return digits
+
+
+class AddressForm(forms.ModelForm):
     """Validate the residential address for a member."""
 
+    postal_code = forms.CharField(required=False, max_length=9, label="CEP")
+
     class Meta:
-        model = MemberAddress
+        model = Address
         fields = [
             "postal_code",
             "country",
@@ -137,14 +161,32 @@ class MemberAddressForm(forms.ModelForm):
         for field in self.fields.values():
             _apply_widget_class(field)
 
+    def clean_postal_code(self):
+        """Store CEP with digits only while accepting common masks."""
+        postal_code = self.cleaned_data.get("postal_code")
 
-class MemberPhoneForm(forms.ModelForm):
+        if not postal_code:
+            return ""
+
+        digits = _only_digits(postal_code)
+        if len(digits) != 8:
+            raise forms.ValidationError("Informe um CEP com 8 digitos.")
+
+        return digits
+
+    def clean_state(self):
+        """Store Brazilian state abbreviation in uppercase."""
+        return (self.cleaned_data.get("state") or "").upper()
+
+
+class PhoneForm(forms.ModelForm):
     """Validate a phone number attached to a member."""
 
     kind = forms.ChoiceField(choices=PHONE_KIND_CHOICES, label="Tipo")
+    number = forms.CharField(max_length=20, label="Telefone")
 
     class Meta:
-        model = MemberPhone
+        model = Phone
         fields = [
             "kind",
             "number",
@@ -168,11 +210,21 @@ class MemberPhoneForm(forms.ModelForm):
         for field in self.fields.values():
             _apply_widget_class(field)
 
+    def clean_number(self):
+        """Store phone numbers with digits only while accepting common masks."""
+        number = self.cleaned_data.get("number")
+        digits = _only_digits(number)
 
-MemberPhoneFormSet = inlineformset_factory(
+        if not 8 <= len(digits) <= 15:
+            raise forms.ValidationError("Informe um telefone com 8 a 15 digitos.")
+
+        return digits
+
+
+PhoneFormSet = inlineformset_factory(
     Member,
-    MemberPhone,
-    form=MemberPhoneForm,
+    Phone,
+    form=PhoneForm,
     extra=2,
     can_delete=True,
 )

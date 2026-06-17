@@ -7,7 +7,7 @@ from django.shortcuts import render as django_render
 from django.urls import reverse
 
 from apps.members import views as member_views
-from apps.members.models import Member, MemberAddress, MemberPhone
+from apps.members.models import Address, Member, Phone
 
 
 def _create_user(django_user_model):
@@ -28,14 +28,14 @@ def _member_post_data(**overrides):
         "member_type": "Membro ativo",
         "cpf": "123.456.789-00",
         "birth_date": "1990-01-02",
-        "sex": "Feminino",
+        "sex": Member.Sex.FEMALE,
         "nationality": "Brasil",
         "birthplace": "Sao Paulo SP",
         "email": "maria@example.com",
         "father_name": "Jose Silva",
         "mother_name": "Ana Silva",
         "spouse_name": "",
-        "marital_status": "Solteira",
+        "marital_status": Member.MaritalStatus.SINGLE,
         "marriage_date": "",
         "is_active": "on",
         "postal_code": "01001-000",
@@ -50,7 +50,7 @@ def _member_post_data(**overrides):
         "phones-INITIAL_FORMS": "0",
         "phones-MIN_NUM_FORMS": "0",
         "phones-MAX_NUM_FORMS": "1000",
-        "phones-0-kind": MemberPhone.KIND_MOBILE,
+        "phones-0-kind": Phone.KIND_MOBILE,
         "phones-0-number": "11999999999",
         "phones-0-contact_name": "",
         "phones-0-is_primary": "on",
@@ -104,17 +104,21 @@ def test_member_views_require_authentication(client):
 def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkeypatch):
     """Members list should render and filter by member contact data."""
     user = _create_user(django_user_model)
-    matching_member = Member.objects.create(name="Maria Silva", email="maria@example.com")
+    matching_member = Member.objects.create(
+        name="Maria Silva",
+        email="maria@example.com",
+        cpf="12345678900",
+    )
     other_member = Member.objects.create(name="Joao Souza", email="joao@example.com")
-    MemberAddress.objects.create(member=matching_member, city="Sao Paulo", district="Centro")
-    MemberPhone.objects.create(
+    Address.objects.create(member=matching_member, city="Sao Paulo", district="Centro")
+    Phone.objects.create(
         member=matching_member,
-        kind=MemberPhone.KIND_MOBILE,
+        kind=Phone.KIND_MOBILE,
         number="11999999999",
     )
     template_names = _record_rendered_templates(monkeypatch)
     request = _attach_request_state(
-        rf.get(reverse("members:list"), {"q": "119999"}),
+        rf.get(reverse("members:list"), {"q": "123.456"}),
         user,
     )
 
@@ -154,7 +158,9 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert response.status_code == 302
     assert response.headers["Location"] == reverse("members:list")
     member = Member.objects.get(name="Maria Silva")
+    assert member.cpf == "12345678900"
     assert member.address.city == "Sao Paulo"
+    assert member.address.postal_code == "01001000"
     phone = member.phones.get()
     assert phone.number == "11999999999"
     assert phone.is_primary is True
@@ -205,10 +211,10 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     user = _create_user(django_user_model)
     client.force_login(user)
     member = Member.objects.create(name="Maria Silva")
-    address = MemberAddress.objects.create(member=member, city="Sao Paulo")
-    phone = MemberPhone.objects.create(
+    address = Address.objects.create(member=member, city="Sao Paulo")
+    phone = Phone.objects.create(
         member=member,
-        kind=MemberPhone.KIND_MOBILE,
+        kind=Phone.KIND_MOBILE,
         number="11999999999",
     )
     data = _member_post_data(
@@ -217,7 +223,7 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
         **{
             "phones-INITIAL_FORMS": "1",
             "phones-0-id": str(phone.pk),
-            "phones-0-kind": MemberPhone.KIND_HOME,
+            "phones-0-kind": Phone.KIND_HOME,
             "phones-0-number": "1133334444",
             "phones-0-has_whatsapp": "",
         },
@@ -232,7 +238,7 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     phone.refresh_from_db()
     assert member.name == "Maria Silva Atualizada"
     assert address.city == "Santos"
-    assert phone.kind == MemberPhone.KIND_HOME
+    assert phone.kind == Phone.KIND_HOME
     assert phone.number == "1133334444"
     assert phone.has_whatsapp is False
 
@@ -286,10 +292,10 @@ def test_member_remove_soft_deletes_member_and_keeps_contact_records(
     user = _create_user(django_user_model)
     client.force_login(user)
     member = Member.objects.create(name="Maria Silva")
-    address = MemberAddress.objects.create(member=member, city="Sao Paulo")
-    phone = MemberPhone.objects.create(
+    address = Address.objects.create(member=member, city="Sao Paulo")
+    phone = Phone.objects.create(
         member=member,
-        kind=MemberPhone.KIND_MOBILE,
+        kind=Phone.KIND_MOBILE,
         number="11999999999",
     )
 
@@ -301,5 +307,5 @@ def test_member_remove_soft_deletes_member_and_keeps_contact_records(
 
     deleted_member = Member.all_objects.get(pk=member.pk)
     assert deleted_member.deleted_at is not None
-    assert MemberAddress.objects.filter(pk=address.pk).exists()
-    assert MemberPhone.objects.filter(pk=phone.pk).exists()
+    assert Address.objects.filter(pk=address.pk).exists()
+    assert Phone.objects.filter(pk=phone.pk).exists()

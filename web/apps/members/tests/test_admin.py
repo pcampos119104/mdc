@@ -4,14 +4,14 @@ import pytest
 from django.contrib.admin.sites import site
 from django.urls import reverse
 
-from apps.members.models import Member, MemberAddress, MemberPhone
+from apps.members.models import Address, Member, Phone
 
 
 def test_models_are_registered_in_admin():
     """Members models should be registered in the Django admin site."""
     assert site.is_registered(Member)
-    assert site.is_registered(MemberAddress)
-    assert site.is_registered(MemberPhone)
+    assert site.is_registered(Address)
+    assert site.is_registered(Phone)
 
 
 @pytest.mark.django_db
