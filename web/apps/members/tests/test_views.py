@@ -118,7 +118,7 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
     )
     template_names = _record_rendered_templates(monkeypatch)
     request = _attach_request_state(
-        rf.get(reverse("members:list"), {"q": "123.456"}),
+        rf.get(reverse("members:list"), {"q": "(11) 9999"}),
         user,
     )
 
