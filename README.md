@@ -45,6 +45,18 @@ Initial monorepo structure for a church member management system.
 
 ## Useful commands
 
+Build the local development stack:
+
+```bash
+just build
+```
+
+Run database migrations:
+
+```bash
+just mng migrate
+```
+
 Run Django checks:
 
 ```bash
@@ -54,5 +66,17 @@ docker compose exec web uv run python manage.py check
 Run tests:
 
 ```bash
-docker compose exec web uv run pytest
+just test
 ```
+
+Build the production image locally:
+
+```bash
+just prod-build
+```
+
+## CI/CD
+
+GitHub Actions runs the test suite on pull requests and pushes to `main` using `.github/workflows/ci.yml`.
+
+When CI succeeds for a push to `main`, `.github/workflows/push-image.yml` builds `web/Dockerfile` and publishes the image to GitHub Container Registry as `ghcr.io/<owner>/<repo>:latest` and `ghcr.io/<owner>/<repo>:sha-<commit>`.

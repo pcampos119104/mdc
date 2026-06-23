@@ -11,7 +11,7 @@ def test_login_page_renders(client):
 
     assert response.status_code == 200
     assert any(template.name == "account/login.html" for template in response.templates)
-    assert b"Sign In" in response.content
+    assert "Entrar no sistema" in response.content.decode()
 
 
 @pytest.mark.django_db

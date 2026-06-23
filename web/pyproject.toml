@@ -6,7 +6,9 @@ requires-python = ">=3.12"
 dependencies = [
     "Django>=5.1,<5.2",
     "django-allauth>=65,<66",
+    "gunicorn>=23,<24",
     "psycopg[binary]>=3.2,<3.3",
+    "whitenoise>=6.9,<7",
 ]
 
 [dependency-groups]
