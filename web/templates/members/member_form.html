@@ -11,7 +11,7 @@
         <div>
           <p class="text-sm font-medium text-blue-700">Cadastro de membro</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">{{ title }}</h1>
-          <p class="mt-2 text-sm text-slate-600">Preencha os dados principais, endereco residencial e telefones numericos vinculados ao membro.</p>
+          <p class="mt-2 text-sm text-slate-600">Preencha os dados cadastrais, familiares, endereco residencial e telefones vinculados ao membro.</p>
         </div>
         <a href="{{ cancel_url }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Voltar</a>
       </div>
@@ -29,13 +29,26 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
-            <h2 class="text-lg font-semibold text-slate-950">Dados pessoais</h2>
-            <p class="mt-1 text-sm text-slate-500">Informacoes principais do cadastro do membro.</p>
+            <h2 class="text-lg font-semibold text-slate-950">Dados do membro</h2>
+            <p class="mt-1 text-sm text-slate-500">Informacoes principais, classificacao, nascimento, filiacao e estado civil.</p>
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
             {% for field in member_form %}
-              <div class="{% if field.name == 'name' %}sm:col-span-2{% endif %}">
+              {% if field.name == "birth_date" %}
+                <div class="sm:col-span-2 pt-2">
+                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Nascimento</h3>
+                </div>
+              {% elif field.name == "father_name" %}
+                <div class="sm:col-span-2 pt-2">
+                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Familia e estado civil</h3>
+                </div>
+              {% elif field.name == "is_active" %}
+                <div class="sm:col-span-2 pt-2">
+                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situacao do cadastro</h3>
+                </div>
+              {% endif %}
+              <div class="{% if field.name == 'name' or field.name == 'email' or field.name == 'spouse_name' %}sm:col-span-2{% endif %}">
                 {% if field.field.widget.input_type == "checkbox" %}
                   <label for="{{ field.id_for_label }}" class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-slate-900">
                     {{ field }}

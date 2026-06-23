@@ -11,7 +11,7 @@
         <div>
           <p class="text-sm font-medium text-blue-700">Gestao de membros</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Membros</h1>
-          <p class="mt-2 max-w-2xl text-sm text-slate-600">Consulte dados cadastrais, endereco residencial e telefones numericos vinculados a cada membro.</p>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600">Consulte dados cadastrais, familiares, endereco residencial e telefones vinculados a cada membro.</p>
         </div>
         <a href="{% url 'members:create' %}" class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Novo membro</a>
       </div>
@@ -36,6 +36,7 @@
             <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th scope="col" class="px-5 py-4 font-semibold">Membro</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Dados pessoais</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Contato</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Endereco</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Status</th>
@@ -49,7 +50,19 @@
                     <p class="font-semibold text-slate-950">{{ member.name }}</p>
                     <div class="mt-1 space-y-1 text-xs text-slate-500">
                       {% if member.cpf %}<p>CPF: {{ member.cpf }}</p>{% endif %}
-                      {% if member.member_type %}<p>{{ member.member_type }}</p>{% endif %}
+                      {% if member.registration_type %}<p>Cadastro: {{ member.registration_type }}</p>{% endif %}
+                      {% if member.person_type %}<p>Classificacao: {{ member.person_type }}</p>{% endif %}
+                      {% if member.member_type %}<p>Tipo: {{ member.member_type }}</p>{% endif %}
+                    </div>
+                  </td>
+                  <td class="px-5 py-4">
+                    <div class="space-y-1 text-xs text-slate-500">
+                      {% if member.birth_date %}<p>Nascimento: {{ member.birth_date|date:"d/m/Y" }}</p>{% endif %}
+                      {% if member.sex %}<p>Sexo: {{ member.get_sex_display }}</p>{% endif %}
+                      {% if member.nationality %}<p>Nacionalidade: {{ member.nationality }}</p>{% endif %}
+                      {% if member.birthplace %}<p>Naturalidade: {{ member.birthplace }}</p>{% endif %}
+                      {% if member.marital_status %}<p>Estado civil: {{ member.get_marital_status_display }}</p>{% endif %}
+                      {% if member.spouse_name %}<p>Conjuge: {{ member.spouse_name }}</p>{% endif %}
                     </div>
                   </td>
                   <td class="px-5 py-4">
@@ -93,7 +106,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="px-5 py-12 text-center">
+                  <td colspan="6" class="px-5 py-12 text-center">
                     <p class="text-base font-semibold text-slate-950">Nenhum membro encontrado</p>
                     <p class="mt-2 text-sm text-slate-500">Crie um novo cadastro ou ajuste a busca.</p>
                   </td>
