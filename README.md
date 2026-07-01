@@ -75,6 +75,28 @@ Build the production image locally:
 just prod-build
 ```
 
+## Production email
+
+The app reads email settings from environment variables. Local development uses
+the console email backend by default.
+
+For Resend SMTP in production, configure:
+
+```env
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.resend.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=resend
+EMAIL_HOST_PASSWORD=re_your_resend_api_key
+EMAIL_USE_TLS=1
+EMAIL_USE_SSL=0
+DEFAULT_FROM_EMAIL=MDC <noreply@your-domain.com>
+SERVER_EMAIL=MDC <noreply@your-domain.com>
+```
+
+The sender domain must be verified in Resend before production emails can be
+delivered.
+
 ## CI/CD
 
 GitHub Actions runs the test suite on pull requests and pushes to `main` using `.github/workflows/ci.yml`.

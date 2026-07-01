@@ -13,6 +13,11 @@ def parse_csv_env(name, default=""):
     return [value.strip() for value in os.environ.get(name, default).split(",") if value.strip()]
 
 
+def parse_bool_env(name, default=False):
+    """Return whether an environment variable contains a truthy value."""
+    return os.environ.get(name, str(int(default))).lower() in {"1", "true", "yes", "on"}
+
+
 def database_config_from_url(database_url):
     """Return Django database settings parsed from a PostgreSQL DATABASE_URL."""
     parsed_url = urlparse(database_url)
@@ -146,7 +151,17 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = parse_bool_env("EMAIL_USE_TLS")
+EMAIL_USE_SSL = parse_bool_env("EMAIL_USE_SSL")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
+SERVER_EMAIL = os.environ.get("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
