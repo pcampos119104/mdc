@@ -226,5 +226,7 @@ PhoneFormSet = inlineformset_factory(
     Phone,
     form=PhoneForm,
     extra=2,
-    can_delete=True,
+    max_num=2,
+    validate_max=True,
+    can_delete=False,
 )

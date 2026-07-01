@@ -46,16 +46,22 @@ def _member_post_data(**overrides):
         "street_number": "123",
         "complement": "Casa",
         "district": "Centro",
-        "phones-TOTAL_FORMS": "1",
+        "phones-TOTAL_FORMS": "2",
         "phones-INITIAL_FORMS": "0",
         "phones-MIN_NUM_FORMS": "0",
-        "phones-MAX_NUM_FORMS": "1000",
+        "phones-MAX_NUM_FORMS": "2",
         "phones-0-kind": Phone.KIND_MOBILE,
         "phones-0-number": "11999999999",
         "phones-0-contact_name": "",
         "phones-0-is_primary": "on",
         "phones-0-receives_sms": "on",
         "phones-0-has_whatsapp": "on",
+        "phones-1-kind": "",
+        "phones-1-number": "",
+        "phones-1-contact_name": "",
+        "phones-1-is_primary": "",
+        "phones-1-receives_sms": "",
+        "phones-1-has_whatsapp": "",
     }
     data.update(overrides)
     return data
@@ -165,6 +171,29 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert phone.number == "11999999999"
     assert phone.is_primary is True
     assert phone.has_whatsapp is True
+
+
+@pytest.mark.django_db
+def test_member_create_rejects_more_than_two_phones(client, django_user_model):
+    """Member creation should reject submissions with more than two phones."""
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    data = _member_post_data(
+        **{
+            "phones-TOTAL_FORMS": "3",
+            "phones-2-kind": Phone.KIND_WORK,
+            "phones-2-number": "1144445555",
+            "phones-2-contact_name": "",
+            "phones-2-is_primary": "",
+            "phones-2-receives_sms": "",
+            "phones-2-has_whatsapp": "",
+        }
+    )
+
+    response = client.post(reverse("members:create"), data)
+
+    assert response.status_code == 200
+    assert Member.objects.count() == 0
 
 
 @pytest.mark.django_db

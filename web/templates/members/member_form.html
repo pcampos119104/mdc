@@ -11,7 +11,7 @@
         <div>
           <p class="text-sm font-medium text-blue-700">Cadastro de membro</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">{{ title }}</h1>
-          <p class="mt-2 text-sm text-slate-600">Preencha os dados cadastrais, familiares, endereco residencial e telefones vinculados ao membro.</p>
+          <p class="mt-2 text-sm text-slate-600">Preencha os dados cadastrais, familiares, endereco residencial e ate dois telefones vinculados ao membro.</p>
         </div>
         <a href="{{ cancel_url }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Voltar</a>
       </div>
@@ -87,7 +87,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
             <h2 class="text-lg font-semibold text-slate-950">Telefones</h2>
-            <p class="mt-1 text-sm text-slate-500">Cadastre telefones do membro e contatos relacionados. Os numeros sao salvos como valores numericos.</p>
+            <p class="mt-1 text-sm text-slate-500">Cadastre ate dois telefones do membro e contatos relacionados. O segundo telefone pode ficar em branco.</p>
           </div>
 
           {{ phone_formset.management_form }}
@@ -98,30 +98,21 @@
                 {% for hidden in phone_form.hidden_fields %}{{ hidden }}{% endfor %}
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {% for field in phone_form.visible_fields %}
-                    {% if field.name != "DELETE" %}
-                      <div>
-                        {% if field.field.widget.input_type == "checkbox" %}
-                          <label for="{{ field.id_for_label }}" class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm font-medium text-slate-900">
-                            {{ field }}
-                            <span>{{ field.label }}</span>
-                          </label>
-                        {% else %}
-                          <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">{{ field.label }}</label>
+                    <div>
+                      {% if field.field.widget.input_type == "checkbox" %}
+                        <label for="{{ field.id_for_label }}" class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm font-medium text-slate-900">
                           {{ field }}
-                          {% if field.name == "number" %}<p class="mt-1 text-xs text-slate-500">Digite DDD e numero; mascaras como (11) 99999-9999 tambem sao aceitas.</p>{% endif %}
-                        {% endif %}
-                        {% if field.errors %}<p class="mt-2 text-sm text-red-600">{{ field.errors|striptags }}</p>{% endif %}
-                      </div>
-                    {% endif %}
+                          <span>{{ field.label }}</span>
+                        </label>
+                      {% else %}
+                        <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.name == "number" %}<p class="mt-1 text-xs text-slate-500">Digite DDD e numero; mascaras como (11) 99999-9999 tambem sao aceitas.</p>{% endif %}
+                      {% endif %}
+                      {% if field.errors %}<p class="mt-2 text-sm text-red-600">{{ field.errors|striptags }}</p>{% endif %}
+                    </div>
                   {% endfor %}
                 </div>
-
-                {% if phone_form.instance.pk and phone_form.DELETE %}
-                  <label for="{{ phone_form.DELETE.id_for_label }}" class="mt-4 flex items-center gap-3 text-sm font-medium text-red-700">
-                    {{ phone_form.DELETE }}
-                    <span>Remover este telefone</span>
-                  </label>
-                {% endif %}
               </div>
             {% endfor %}
           </div>
