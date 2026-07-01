@@ -97,6 +97,37 @@ SERVER_EMAIL=MDC <noreply@your-domain.com>
 The sender domain must be verified in Resend before production emails can be
 delivered.
 
+## Sentry
+
+The app can report errors to Sentry when `SENTRY_DSN` is configured. Leave
+`SENTRY_DSN` empty to disable Sentry, which is the default for local
+development.
+
+Create a Django project in Sentry, copy the DSN, and configure these environment
+variables in `.env` for local usage or in Dokploy for production:
+
+```env
+SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+SENTRY_ENVIRONMENT=production
+SENTRY_TRACES_SAMPLE_RATE=0.1
+SENTRY_SEND_DEFAULT_PII=0
+```
+
+`SENTRY_TRACES_SAMPLE_RATE` controls performance tracing. Use `0.0` to disable
+tracing or a small value such as `0.1` in production to sample 10% of requests.
+Keep `SENTRY_SEND_DEFAULT_PII=0` unless sending user-identifying data to Sentry
+is intentional and approved.
+
+To test the integration locally, configure `SENTRY_DSN` and start the app with
+`DJANGO_DEBUG=1`. Then open:
+
+```text
+http://localhost:8000/sentry-debug/
+```
+
+This route intentionally raises an error and only exists when `DEBUG` is enabled.
+The error should appear in the configured Sentry project.
+
 ## CI/CD
 
 GitHub Actions runs the test suite on pull requests and pushes to `main` using `.github/workflows/ci.yml`.

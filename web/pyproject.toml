@@ -8,6 +8,7 @@ dependencies = [
     "django-allauth>=65,<66",
     "gunicorn>=23,<24",
     "psycopg[binary]>=3.2,<3.3",
+    "sentry-sdk[django]>=2.19,<3",
     "whitenoise>=6.9,<7",
 ]
 

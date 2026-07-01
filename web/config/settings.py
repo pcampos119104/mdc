@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
+import sentry_sdk
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,6 +40,15 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = parse_csv_env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 CSRF_TRUSTED_ORIGINS = parse_csv_env("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
+        send_default_pii=parse_bool_env("SENTRY_SEND_DEFAULT_PII"),
+    )
 
 INSTALLED_APPS = [
     "django.contrib.admin",
