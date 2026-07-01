@@ -25,19 +25,13 @@ Initial monorepo structure for a church member management system.
    docker compose up --build
    ```
 
-3. In another terminal, run the database migrations:
-
-   ```bash
-   docker compose exec web uv run python manage.py migrate
-   ```
-
-4. Optionally create an admin user:
+3. Optionally create an admin user:
 
    ```bash
    docker compose exec web uv run python manage.py createsuperuser
    ```
 
-5. Open the application:
+4. Open the application:
 
    - Home page: http://localhost:8000/
    - Admin: http://localhost:8000/admin/
@@ -74,6 +68,30 @@ Build the production image locally:
 ```bash
 just prod-build
 ```
+
+## Container startup
+
+The Docker images use `web/entrypoint.sh` before the configured container
+command. By default, the entrypoint does not run database migrations.
+
+Migrations run only when `DJANGO_RUN_MIGRATIONS` is explicitly set to `true`:
+
+```sh
+if [ "${DJANGO_RUN_MIGRATIONS:-false}" = "true" ]; then
+  python manage.py migrate --noinput
+fi
+```
+
+The local `compose.yaml` sets `DJANGO_RUN_MIGRATIONS: "true"` for the `web`
+service, so local containers apply pending migrations before starting Django's
+development server. In production, configure `DJANGO_RUN_MIGRATIONS=true` only
+on the application service responsible for running migrations. Do not set it on
+future worker, queue, or maintenance services unless they are intentionally
+responsible for migrations.
+
+After the optional migration step, the entrypoint delegates to the container
+command with `exec "$@"`. The production image keeps Gunicorn as the default
+`CMD`.
 
 ## Production email
 
@@ -133,3 +151,7 @@ The error should appear in the configured Sentry project.
 GitHub Actions runs the test suite on pull requests and pushes to `main` using `.github/workflows/ci.yml`.
 
 When CI succeeds for a push to `main`, `.github/workflows/push-image.yml` builds `web/Dockerfile` and publishes the image to GitHub Container Registry as `ghcr.io/<owner>/<repo>:latest` and `ghcr.io/<owner>/<repo>:sha-<commit>`.
+
+Production database migrations are not moved to GitHub Actions; they are handled
+by the container startup flow when `DJANGO_RUN_MIGRATIONS=true` is configured
+for the application service.
