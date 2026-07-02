@@ -16,14 +16,34 @@ def reload_project_urls():
     importlib.reload(urls)
 
 
+def _create_user(django_user_model):
+    """Create a user allowed to access the system home page."""
+    return django_user_model.objects.create_user(
+        username="leader",
+        email="leader@example.com",
+        password="secret-pass-123",
+    )
+
+
+def test_home_page_requires_authentication(client):
+    """Anonymous users should be redirected to login from the home page."""
+    response = client.get(reverse("home"))
+
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith(reverse("account_login"))
+
+
 @pytest.mark.django_db
-def test_home_page_renders(client):
-    """Home page should return a successful response and render its template."""
+def test_home_page_renders_member_list(client, django_user_model):
+    """Home page should display the member list for authenticated users."""
+    user = _create_user(django_user_model)
+    client.force_login(user)
+
     response = client.get(reverse("home"))
 
     assert response.status_code == 200
     template_names = [template.name for template in response.templates if template.name]
-    assert "home.html" in template_names
+    assert "members/member_list.html" in template_names
 
 
 def test_sentry_debug_view_raises_error(rf):
