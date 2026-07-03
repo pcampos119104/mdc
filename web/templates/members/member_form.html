@@ -39,6 +39,10 @@
                 <div class="sm:col-span-2 pt-2">
                   <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Nascimento</h3>
                 </div>
+              {% elif field.name == "include_in_birthday_list" %}
+                <div class="sm:col-span-2 pt-2">
+                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Lista de aniversariantes</h3>
+                </div>
               {% elif field.name == "father_name" %}
                 <div class="sm:col-span-2 pt-2">
                   <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Familia e estado civil</h3>
@@ -48,7 +52,7 @@
                   <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situacao do cadastro</h3>
                 </div>
               {% endif %}
-              <div class="{% if field.name == 'name' or field.name == 'email' or field.name == 'spouse_name' %}sm:col-span-2{% endif %}">
+              <div class="{% if field.name == 'name' or field.name == 'email' or field.name == 'spouse_name' or field.name == 'include_in_birthday_list' %}sm:col-span-2{% endif %}">
                 {% if field.field.widget.input_type == "checkbox" %}
                   <label for="{{ field.id_for_label }}" class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-slate-900">
                     {{ field }}

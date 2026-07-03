@@ -5,6 +5,7 @@ from django.contrib.admin.sites import site
 from django.urls import reverse
 
 from apps.members.models import Address, Member, Phone
+from apps.members.admin import MemberAdmin
 
 
 def test_models_are_registered_in_admin():
@@ -12,6 +13,15 @@ def test_models_are_registered_in_admin():
     assert site.is_registered(Member)
     assert site.is_registered(Address)
     assert site.is_registered(Phone)
+
+
+def test_member_admin_exposes_birthday_list_field():
+    """Member admin should expose the birthday list flag for quick management."""
+    member_admin = site._registry[Member]
+
+    assert isinstance(member_admin, MemberAdmin)
+    assert "include_in_birthday_list" in member_admin.list_display
+    assert "include_in_birthday_list" in member_admin.list_filter
 
 
 @pytest.mark.django_db

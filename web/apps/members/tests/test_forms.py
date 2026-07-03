@@ -17,12 +17,14 @@ def test_member_form_normalizes_masked_cpf():
             "cpf": "123.456.789-01",
             "sex": Member.Sex.FEMALE,
             "marital_status": Member.MaritalStatus.SINGLE,
+            "include_in_birthday_list": "on",
             "is_active": "on",
         }
     )
 
     assert form.is_valid(), form.errors
     assert form.cleaned_data["cpf"] == "12345678901"
+    assert form.cleaned_data["include_in_birthday_list"] is True
 
 
 def test_address_form_normalizes_postal_code_and_state():

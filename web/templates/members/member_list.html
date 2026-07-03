@@ -58,6 +58,7 @@
                   <td class="px-5 py-4">
                     <div class="space-y-1 text-xs text-slate-500">
                       {% if member.birth_date %}<p>Nascimento: {{ member.birth_date|date:"d/m/Y" }}</p>{% endif %}
+                      <p>Aniversariantes: {% if member.include_in_birthday_list %}Sim{% else %}Nao{% endif %}</p>
                       {% if member.sex %}<p>Sexo: {{ member.get_sex_display }}</p>{% endif %}
                       {% if member.nationality %}<p>Nacionalidade: {{ member.nationality }}</p>{% endif %}
                       {% if member.birthplace %}<p>Naturalidade: {{ member.birthplace }}</p>{% endif %}

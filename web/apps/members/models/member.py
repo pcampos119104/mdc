@@ -53,6 +53,10 @@ class Member(SoftDeleteModel):
         null=True,
         help_text="Data de nascimento do membro.",
     )
+    include_in_birthday_list = models.BooleanField(
+        default=True,
+        help_text="Indica se o membro deve aparecer na lista de aniversariantes.",
+    )
     sex = models.CharField(
         max_length=6,
         blank=True,

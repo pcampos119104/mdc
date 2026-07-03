@@ -33,6 +33,7 @@ def test_member_can_be_created_with_initial_fields():
     member.full_clean()
     assert member.pk is not None
     assert member.is_active is True
+    assert member.include_in_birthday_list is True
     assert str(member) == member.name
 
 
@@ -145,6 +146,10 @@ def test_member_fields_expose_help_texts():
     assert (
         Member._meta.get_field("marriage_date").help_text
         == "Data do casamento, quando houver."
+    )
+    assert (
+        Member._meta.get_field("include_in_birthday_list").help_text
+        == "Indica se o membro deve aparecer na lista de aniversariantes."
     )
     assert (
         Phone._meta.get_field("has_whatsapp").help_text

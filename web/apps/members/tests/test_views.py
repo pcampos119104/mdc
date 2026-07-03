@@ -28,6 +28,7 @@ def _member_post_data(**overrides):
         "member_type": "Membro ativo",
         "cpf": "123.456.789-00",
         "birth_date": "1990-01-02",
+        "include_in_birthday_list": "on",
         "sex": Member.Sex.FEMALE,
         "nationality": "Brasil",
         "birthplace": "Sao Paulo SP",
@@ -151,6 +152,7 @@ def test_member_create_page_renders_for_authenticated_user(
 
     assert response.status_code == 200
     assert template_names == ["members/member_form.html"]
+    assert b"Incluir na lista de aniversariantes" in response.content
 
 
 @pytest.mark.django_db
@@ -165,6 +167,7 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert response.headers["Location"] == reverse("members:list")
     member = Member.objects.get(name="Maria Silva")
     assert member.cpf == "12345678900"
+    assert member.include_in_birthday_list is True
     assert member.address.city == "Sao Paulo"
     assert member.address.postal_code == "01001000"
     phone = member.phones.get()
@@ -210,6 +213,7 @@ def test_member_create_rejects_invalid_submission(rf, django_user_model, monkeyp
 
     assert response.status_code == 200
     assert template_names == ["members/member_form.html"]
+    assert b"Incluir na lista de aniversariantes" in response.content
     assert Member.objects.count() == 0
 
 
@@ -249,6 +253,7 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     data = _member_post_data(
         name="Maria Silva Atualizada",
         city="Santos",
+        include_in_birthday_list="",
         **{
             "phones-INITIAL_FORMS": "1",
             "phones-0-id": str(phone.pk),
@@ -266,6 +271,7 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     address.refresh_from_db()
     phone.refresh_from_db()
     assert member.name == "Maria Silva Atualizada"
+    assert member.include_in_birthday_list is False
     assert address.city == "Santos"
     assert phone.kind == Phone.KIND_HOME
     assert phone.number == "1133334444"
