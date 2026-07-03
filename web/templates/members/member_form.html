@@ -20,10 +20,10 @@
         {% csrf_token %}
 
         {% if member_form.non_field_errors or address_form.non_field_errors or phone_formset.non_form_errors %}
-          <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
-            {{ member_form.non_field_errors|striptags }}
-            {{ address_form.non_field_errors|striptags }}
-            {{ phone_formset.non_form_errors|striptags }}
+          <div class="space-y-1 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+            {% for error in member_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            {% for error in address_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            {% for error in phone_formset.non_form_errors %}<p>{{ error }}</p>{% endfor %}
           </div>
         {% endif %}
 
@@ -34,38 +34,43 @@
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            {% for field in member_form %}
-              {% if field.name == "birth_date" %}
-                <div class="sm:col-span-2 pt-2">
-                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Nascimento</h3>
-                </div>
-              {% elif field.name == "include_in_birthday_list" %}
-                <div class="sm:col-span-2 pt-2">
-                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Lista de aniversariantes</h3>
-                </div>
-              {% elif field.name == "father_name" %}
-                <div class="sm:col-span-2 pt-2">
-                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Familia e estado civil</h3>
-                </div>
-              {% elif field.name == "is_active" %}
-                <div class="sm:col-span-2 pt-2">
-                  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situacao do cadastro</h3>
-                </div>
-              {% endif %}
-              <div class="{% if field.name == 'name' or field.name == 'email' or field.name == 'spouse_name' or field.name == 'include_in_birthday_list' %}sm:col-span-2{% endif %}">
-                {% if field.field.widget.input_type == "checkbox" %}
-                  <label for="{{ field.id_for_label }}" class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-slate-900">
-                    {{ field }}
-                    <span>{{ field.label }}</span>
-                  </label>
-                {% else %}
-                  <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">{{ field.label }}</label>
-                  {{ field }}
-                {% endif %}
-                {% if field.help_text %}<p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
-                {% if field.errors %}<p class="mt-2 text-sm text-red-600">{{ field.errors|striptags }}</p>{% endif %}
-              </div>
-            {% endfor %}
+            <c-form.input :field="member_form.name" class="sm:col-span-2" />
+            <c-form.input :field="member_form.registration_type" />
+            <c-form.input :field="member_form.person_type" />
+            <c-form.input :field="member_form.member_type" />
+            <c-form.input :field="member_form.cpf" />
+
+            <div class="sm:col-span-2 pt-2">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Nascimento</h3>
+            </div>
+
+            <c-form.input :field="member_form.birth_date" />
+            <c-form.select :field="member_form.sex" />
+            <c-form.input :field="member_form.nationality" />
+            <c-form.input :field="member_form.birthplace" />
+            <c-form.input :field="member_form.email" class="sm:col-span-2" />
+
+            <div class="sm:col-span-2 pt-2">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Lista de aniversariantes</h3>
+            </div>
+
+            <c-form.checkbox :field="member_form.include_in_birthday_list" class="sm:col-span-2" />
+
+            <div class="sm:col-span-2 pt-2">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Familia e estado civil</h3>
+            </div>
+
+            <c-form.input :field="member_form.father_name" />
+            <c-form.input :field="member_form.mother_name" />
+            <c-form.input :field="member_form.spouse_name" class="sm:col-span-2" />
+            <c-form.select :field="member_form.marital_status" />
+            <c-form.input :field="member_form.marriage_date" />
+
+            <div class="sm:col-span-2 pt-2">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situacao do cadastro</h3>
+            </div>
+
+            <c-form.checkbox :field="member_form.is_active" class="sm:col-span-2" />
           </div>
         </div>
 
@@ -76,15 +81,17 @@
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            {% for field in address_form %}
-              <div class="{% if field.name == 'street' or field.name == 'complement' %}sm:col-span-2{% endif %}">
-                <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">{{ field.label }}</label>
-                {{ field }}
-                {% if field.name == "postal_code" %}<p class="mt-1 text-xs text-slate-500">Digite 8 numeros; mascaras como 01001-000 tambem sao aceitas.</p>{% endif %}
-                {% if field.help_text %}<p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
-                {% if field.errors %}<p class="mt-2 text-sm text-red-600">{{ field.errors|striptags }}</p>{% endif %}
-              </div>
-            {% endfor %}
+            <c-form.input
+              :field="address_form.postal_code"
+              help_text="Digite 8 numeros; mascaras como 01001-000 tambem sao aceitas."
+            />
+            <c-form.input :field="address_form.country" />
+            <c-form.input :field="address_form.state" />
+            <c-form.input :field="address_form.city" />
+            <c-form.input :field="address_form.street" class="sm:col-span-2" />
+            <c-form.input :field="address_form.street_number" />
+            <c-form.input :field="address_form.district" />
+            <c-form.input :field="address_form.complement" class="sm:col-span-2" />
           </div>
         </div>
 
@@ -94,28 +101,33 @@
             <p class="mt-1 text-sm text-slate-500">Cadastre ate dois telefones do membro e contatos relacionados. O segundo telefone pode ficar em branco.</p>
           </div>
 
-          {{ phone_formset.management_form }}
+          <c-form.hidden :field="phone_formset.management_form.TOTAL_FORMS" />
+          <c-form.hidden :field="phone_formset.management_form.INITIAL_FORMS" />
+          <c-form.hidden :field="phone_formset.management_form.MIN_NUM_FORMS" />
+          <c-form.hidden :field="phone_formset.management_form.MAX_NUM_FORMS" />
 
           <div class="mt-5 space-y-4">
             {% for phone_form in phone_formset %}
               <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                {% for hidden in phone_form.hidden_fields %}{{ hidden }}{% endfor %}
+                <c-form.hidden :field="phone_form.id" />
+                <c-form.hidden :field="phone_form.member" />
+
+                {% if phone_form.non_field_errors %}
+                  <div class="mb-4 space-y-1 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
+                    {% for error in phone_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                  </div>
+                {% endif %}
+
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {% for field in phone_form.visible_fields %}
-                    <div>
-                      {% if field.field.widget.input_type == "checkbox" %}
-                        <label for="{{ field.id_for_label }}" class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm font-medium text-slate-900">
-                          {{ field }}
-                          <span>{{ field.label }}</span>
-                        </label>
-                      {% else %}
-                        <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.name == "number" %}<p class="mt-1 text-xs text-slate-500">Digite DDD e numero; mascaras como (11) 99999-9999 tambem sao aceitas.</p>{% endif %}
-                      {% endif %}
-                      {% if field.errors %}<p class="mt-2 text-sm text-red-600">{{ field.errors|striptags }}</p>{% endif %}
-                    </div>
-                  {% endfor %}
+                  <c-form.select :field="phone_form.kind" :show_help="False" />
+                  <c-form.input
+                    :field="phone_form.number"
+                    help_text="Digite DDD e numero; mascaras como (11) 99999-9999 tambem sao aceitas."
+                  />
+                  <c-form.input :field="phone_form.contact_name" :show_help="False" />
+                  <c-form.checkbox :field="phone_form.is_primary" :show_help="False" />
+                  <c-form.checkbox :field="phone_form.receives_sms" :show_help="False" />
+                  <c-form.checkbox :field="phone_form.has_whatsapp" :show_help="False" />
                 </div>
               </div>
             {% endfor %}

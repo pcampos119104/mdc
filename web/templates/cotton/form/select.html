@@ -1,0 +1,56 @@
+<c-vars
+    class=""
+    :nolabel="False"
+    :show_help="True"
+    :required="None"
+    help_text=""
+/>
+
+<div class="{{ class }}">
+    {% with field_help=help_text|default:field.help_text %}
+        {% if nolabel is False %}
+            <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium {% if field.errors %}text-red-700{% else %}text-slate-900{% endif %}">
+                {{ field.label }}
+
+                {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}
+                    <span class="text-red-600" aria-hidden="true">*</span>
+                {% endif %}
+            </label>
+        {% endif %}
+
+        <select
+            name="{{ field.html_name }}"
+            id="{{ field.id_for_label }}"
+            class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+            {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
+            {% if field.errors %}
+                aria-invalid="true"
+                aria-describedby="{{ field.id_for_label }}-errors"
+            {% elif show_help and field_help %}
+                aria-describedby="{{ field.id_for_label }}-help"
+            {% endif %}
+        >
+            {% for value, label in field.field.choices %}
+                <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        {% if show_help and field_help %}
+            <p id="{{ field.id_for_label }}-help" class="mt-1 text-xs text-slate-500">
+                {{ field_help }}
+            </p>
+        {% endif %}
+
+        {% if field.errors %}
+            <div id="{{ field.id_for_label }}-errors" class="mt-2 space-y-1">
+                {% for error in field.errors %}
+                    <p class="text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>

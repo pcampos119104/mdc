@@ -8,19 +8,6 @@ from django.forms import inlineformset_factory
 from .models import Address, Member, Phone
 
 
-FIELD_CLASS = (
-    "block w-full rounded-lg border border-slate-300 bg-slate-50 p-2.5 "
-    "text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600"
-)
-CHECKBOX_CLASS = (
-    "h-4 w-4 rounded border-slate-300 bg-slate-100 text-blue-700 "
-    "focus:ring-blue-600"
-)
-SELECT_CLASS = (
-    "block w-full rounded-lg border border-slate-300 bg-slate-50 p-2.5 "
-    "text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600"
-)
-
 PHONE_KIND_CHOICES = [
     (Phone.KIND_MOBILE, "Celular"),
     (Phone.KIND_HOME, "Residencial"),
@@ -32,21 +19,6 @@ PHONE_KIND_CHOICES = [
 def _only_digits(value):
     """Return only numeric characters from a user-submitted value."""
     return re.sub(r"\D", "", value or "")
-
-
-def _apply_widget_class(field):
-    """Apply the project form CSS classes to a Django form field."""
-    widget = field.widget
-
-    if isinstance(widget, forms.CheckboxInput):
-        css_class = CHECKBOX_CLASS
-    elif isinstance(widget, forms.Select):
-        css_class = SELECT_CLASS
-    else:
-        css_class = FIELD_CLASS
-
-    existing_classes = widget.attrs.get("class", "")
-    widget.attrs["class"] = f"{existing_classes} {css_class}".strip()
 
 
 class MemberForm(forms.ModelForm):
@@ -106,13 +78,10 @@ class MemberForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        """Style all member form fields for the server-rendered UI."""
+        """Configure date parsing for browser date inputs."""
         super().__init__(*args, **kwargs)
         self.fields["birth_date"].input_formats = ["%Y-%m-%d"]
         self.fields["marriage_date"].input_formats = ["%Y-%m-%d"]
-
-        for field in self.fields.values():
-            _apply_widget_class(field)
 
     def clean_cpf(self):
         """Store CPF with digits only while accepting common masks."""
@@ -156,13 +125,6 @@ class AddressForm(forms.ModelForm):
             "district": "Bairro",
         }
 
-    def __init__(self, *args, **kwargs):
-        """Style all address form fields for the server-rendered UI."""
-        super().__init__(*args, **kwargs)
-
-        for field in self.fields.values():
-            _apply_widget_class(field)
-
     def clean_postal_code(self):
         """Store CEP with digits only while accepting common masks."""
         postal_code = self.cleaned_data.get("postal_code")
@@ -204,13 +166,6 @@ class PhoneForm(forms.ModelForm):
             "receives_sms": "Recebe SMS",
             "has_whatsapp": "Possui WhatsApp",
         }
-
-    def __init__(self, *args, **kwargs):
-        """Style all phone form fields for the server-rendered UI."""
-        super().__init__(*args, **kwargs)
-
-        for field in self.fields.values():
-            _apply_widget_class(field)
 
     def clean_number(self):
         """Store phone numbers with digits only while accepting common masks."""
