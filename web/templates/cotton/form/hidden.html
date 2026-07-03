@@ -2,5 +2,6 @@
     type="hidden"
     name="{{ field.html_name }}"
     id="{{ field.id_for_label }}"
+    {# Preserva valores ocultos usados por formsets e management forms. #}
     value="{{ field.value|default_if_none:'' }}"
 >

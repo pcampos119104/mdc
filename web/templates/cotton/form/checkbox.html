@@ -14,8 +14,11 @@
                 id="{{ field.id_for_label }}"
                 value="{{ field.field.widget.attrs.value|default:'on' }}"
                 class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-slate-100 text-blue-700 focus:ring-2 focus:ring-blue-600"
+                {# Mantem marcado o valor enviado ou salvo no formulario. #}
                 {% if field.value %}checked{% endif %}
+                {# Replica required somente quando o formulario permite validacao HTML. #}
                 {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
+                {# Liga o checkbox aos textos de erro ou ajuda para acessibilidade. #}
                 {% if field.errors %}
                     aria-invalid="true"
                     aria-describedby="{{ field.id_for_label }}-errors"

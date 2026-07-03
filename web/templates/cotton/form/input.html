@@ -23,23 +23,30 @@
             type="{{ input_type }}"
             name="{{ field.html_name }}"
             id="{{ field.id_for_label }}"
+            {# Formata datas do Django no valor aceito pelo input date. #}
             {% if input_type == "date" %}
                 value="{{ field.value|date:'Y-m-d'|default:field.value|default_if_none:'' }}"
             {% else %}
                 value="{{ field.value|default_if_none:'' }}"
             {% endif %}
+            {# Usa placeholder passado ao componente ou configurado no widget. #}
             {% if placeholder %}
                 placeholder="{{ placeholder }}"
             {% elif field.field.widget.attrs.placeholder %}
                 placeholder="{{ field.field.widget.attrs.placeholder }}"
             {% endif %}
             class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+            {# Replica required somente quando o formulario permite validacao HTML. #}
             {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
+            {# Repassa limite maximo configurado no campo Django. #}
             {% if field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
+            {# Repassa sugestao de autocomplete configurada no widget. #}
             {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
+            {# Repassa limites numericos ou de data definidos no widget. #}
             {% if field.field.widget.attrs.min %}min="{{ field.field.widget.attrs.min }}"{% endif %}
             {% if field.field.widget.attrs.max %}max="{{ field.field.widget.attrs.max }}"{% endif %}
             {% if field.field.widget.attrs.step %}step="{{ field.field.widget.attrs.step }}"{% endif %}
+            {# Liga o input aos textos de erro ou ajuda para acessibilidade. #}
             {% if field.errors %}
                 aria-invalid="true"
                 aria-describedby="{{ field.id_for_label }}-errors"
