@@ -25,9 +25,10 @@ def _member_post_data(**overrides):
         "name": "Maria Silva",
         "registration_type": "Membro",
         "person_type": "Pessoa",
-        "member_type": "Membro ativo",
         "cpf": "123.456.789-00",
         "birth_date": "1990-01-02",
+        "baptism_date": "2001-02-03",
+        "acclamation_date": "2020-04-05",
         "include_in_birthday_list": "on",
         "sex": Member.Sex.FEMALE,
         "nationality": "Brasil",
@@ -39,6 +40,7 @@ def _member_post_data(**overrides):
         "marital_status": Member.MaritalStatus.SINGLE,
         "marriage_date": "",
         "is_active": "on",
+        "inactive_reason": "",
         "postal_code": "01001-000",
         "country": "Brasil",
         "state": "SP",
@@ -167,6 +169,8 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert response.headers["Location"] == reverse("members:list")
     member = Member.objects.get(name="Maria Silva")
     assert member.cpf == "12345678900"
+    assert member.baptism_date.isoformat() == "2001-02-03"
+    assert member.acclamation_date.isoformat() == "2020-04-05"
     assert member.include_in_birthday_list is True
     assert member.address.city == "Sao Paulo"
     assert member.address.postal_code == "01001000"

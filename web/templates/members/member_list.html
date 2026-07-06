@@ -52,12 +52,13 @@
                       {% if member.cpf %}<p>CPF: {{ member.cpf }}</p>{% endif %}
                       {% if member.registration_type %}<p>Cadastro: {{ member.registration_type }}</p>{% endif %}
                       {% if member.person_type %}<p>Classificacao: {{ member.person_type }}</p>{% endif %}
-                      {% if member.member_type %}<p>Tipo: {{ member.member_type }}</p>{% endif %}
                     </div>
                   </td>
                   <td class="px-5 py-4">
                     <div class="space-y-1 text-xs text-slate-500">
                       {% if member.birth_date %}<p>Nascimento: {{ member.birth_date|date:"d/m/Y" }}</p>{% endif %}
+                      {% if member.baptism_date %}<p>Batismo: {{ member.baptism_date|date:"d/m/Y" }}</p>{% endif %}
+                      {% if member.acclamation_date %}<p>Aclamacao: {{ member.acclamation_date|date:"d/m/Y" }}</p>{% endif %}
                       <p>Aniversariantes: {% if member.include_in_birthday_list %}Sim{% else %}Nao{% endif %}</p>
                       {% if member.sex %}<p>Sexo: {{ member.get_sex_display }}</p>{% endif %}
                       {% if member.nationality %}<p>Nacionalidade: {{ member.nationality }}</p>{% endif %}
@@ -96,6 +97,7 @@
                       <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Ativo</span>
                     {% else %}
                       <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Inativo</span>
+                      {% if member.inactive_reason %}<p class="mt-2 text-xs text-slate-500">{{ member.inactive_reason }}</p>{% endif %}
                     {% endif %}
                   </td>
                   <td class="px-5 py-4 text-right">

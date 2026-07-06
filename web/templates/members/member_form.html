@@ -37,7 +37,6 @@
             <c-form.input :field="member_form.name" class="sm:col-span-2" />
             <c-form.input :field="member_form.registration_type" />
             <c-form.input :field="member_form.person_type" />
-            <c-form.input :field="member_form.member_type" />
             <c-form.input :field="member_form.cpf" />
 
             <div class="sm:col-span-2 pt-2">
@@ -49,6 +48,13 @@
             <c-form.input :field="member_form.nationality" />
             <c-form.input :field="member_form.birthplace" />
             <c-form.input :field="member_form.email" class="sm:col-span-2" />
+
+            <div class="sm:col-span-2 pt-2">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Vida na igreja</h3>
+            </div>
+
+            <c-form.input :field="member_form.baptism_date" />
+            <c-form.input :field="member_form.acclamation_date" />
 
             <div class="sm:col-span-2 pt-2">
               <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Lista de aniversariantes</h3>
@@ -71,6 +77,24 @@
             </div>
 
             <c-form.checkbox :field="member_form.is_active" class="sm:col-span-2" />
+            <div class="sm:col-span-2">
+              <label for="{{ member_form.inactive_reason.id_for_label }}" class="mb-2 block text-sm font-medium {% if member_form.inactive_reason.errors %}text-red-700{% else %}text-slate-900{% endif %}">{{ member_form.inactive_reason.label }}</label>
+              <textarea
+                name="{{ member_form.inactive_reason.html_name }}"
+                id="{{ member_form.inactive_reason.id_for_label }}"
+                rows="3"
+                class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if member_form.inactive_reason.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+                {% if member_form.inactive_reason.errors %}aria-invalid="true" aria-describedby="{{ member_form.inactive_reason.id_for_label }}-errors"{% elif member_form.inactive_reason.help_text %}aria-describedby="{{ member_form.inactive_reason.id_for_label }}-help"{% endif %}
+              >{{ member_form.inactive_reason.value|default_if_none:"" }}</textarea>
+              {% if member_form.inactive_reason.help_text %}
+                <p id="{{ member_form.inactive_reason.id_for_label }}-help" class="mt-1 text-xs text-slate-500">{{ member_form.inactive_reason.help_text }}</p>
+              {% endif %}
+              {% if member_form.inactive_reason.errors %}
+                <div id="{{ member_form.inactive_reason.id_for_label }}-errors" class="mt-2 space-y-1">
+                  {% for error in member_form.inactive_reason.errors %}<p class="text-sm text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+              {% endif %}
+            </div>
           </div>
         </div>
 

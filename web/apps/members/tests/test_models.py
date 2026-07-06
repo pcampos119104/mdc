@@ -16,9 +16,10 @@ def test_member_can_be_created_with_initial_fields():
         name="Ailton Quaresma Trindade Junior",
         registration_type="Lideranca",
         person_type="Pessoa",
-        member_type="Presbitero",
         cpf="22406088898",
         birth_date=date(1982, 3, 29),
+        baptism_date=date(1999, 6, 12),
+        acclamation_date=date(2020, 8, 9),
         sex=Member.Sex.MALE,
         nationality="Brazil",
         birthplace="Sao Paulo SP",
@@ -32,6 +33,8 @@ def test_member_can_be_created_with_initial_fields():
 
     member.full_clean()
     assert member.pk is not None
+    assert member.baptism_date == date(1999, 6, 12)
+    assert member.acclamation_date == date(2020, 8, 9)
     assert member.is_active is True
     assert member.include_in_birthday_list is True
     assert str(member) == member.name
@@ -55,6 +58,16 @@ def test_member_rejects_invalid_structured_values():
 
     with pytest.raises(ValidationError):
         member.full_clean()
+
+
+def test_member_requires_inactive_reason_when_inactive():
+    """Inactive members should include the reason for inactivation."""
+    member = Member(name="Maria Silva", is_active=False)
+
+    with pytest.raises(ValidationError) as exc_info:
+        member.full_clean()
+
+    assert "inactive_reason" in exc_info.value.message_dict
 
 
 @pytest.mark.django_db
@@ -150,6 +163,18 @@ def test_member_fields_expose_help_texts():
     assert (
         Member._meta.get_field("include_in_birthday_list").help_text
         == "Indica se o membro deve aparecer na lista de aniversariantes."
+    )
+    assert (
+        Member._meta.get_field("baptism_date").help_text
+        == "Data do batismo do membro."
+    )
+    assert (
+        Member._meta.get_field("acclamation_date").help_text
+        == "Data da aclamacao do membro."
+    )
+    assert (
+        Member._meta.get_field("inactive_reason").help_text
+        == "Motivo informado quando o cadastro do membro esta inativo."
     )
     assert (
         Phone._meta.get_field("has_whatsapp").help_text

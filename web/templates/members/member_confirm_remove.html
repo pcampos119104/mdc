@@ -16,9 +16,10 @@
           <p><span class="font-semibold text-slate-950">Nome:</span> {{ member.name }}</p>
           {% if member.registration_type %}<p class="mt-2"><span class="font-semibold text-slate-950">Tipo de cadastro:</span> {{ member.registration_type }}</p>{% endif %}
           {% if member.person_type %}<p class="mt-2"><span class="font-semibold text-slate-950">Classificacao:</span> {{ member.person_type }}</p>{% endif %}
-          {% if member.member_type %}<p class="mt-2"><span class="font-semibold text-slate-950">Tipo de membro:</span> {{ member.member_type }}</p>{% endif %}
           {% if member.email %}<p class="mt-2"><span class="font-semibold text-slate-950">E-mail:</span> {{ member.email }}</p>{% endif %}
           {% if member.birth_date %}<p class="mt-2"><span class="font-semibold text-slate-950">Nascimento:</span> {{ member.birth_date|date:"d/m/Y" }}</p>{% endif %}
+          {% if member.baptism_date %}<p class="mt-2"><span class="font-semibold text-slate-950">Batismo:</span> {{ member.baptism_date|date:"d/m/Y" }}</p>{% endif %}
+          {% if member.acclamation_date %}<p class="mt-2"><span class="font-semibold text-slate-950">Aclamacao:</span> {{ member.acclamation_date|date:"d/m/Y" }}</p>{% endif %}
           {% if member.marital_status %}<p class="mt-2"><span class="font-semibold text-slate-950">Estado civil:</span> {{ member.get_marital_status_display }}</p>{% endif %}
           <p class="mt-2"><span class="font-semibold text-slate-950">Telefones:</span> {{ member.phones.count }}</p>
         </div>

@@ -1,5 +1,7 @@
 """Tests for members app forms."""
 
+from datetime import date
+
 import pytest
 
 from apps.members.forms import AddressForm, MemberForm, PhoneForm, PhoneFormSet
@@ -15,6 +17,8 @@ def test_member_form_normalizes_masked_cpf():
         data={
             "name": "Maria Silva",
             "cpf": "123.456.789-01",
+            "baptism_date": "2001-02-03",
+            "acclamation_date": "2020-04-05",
             "sex": Member.Sex.FEMALE,
             "marital_status": Member.MaritalStatus.SINGLE,
             "include_in_birthday_list": "on",
@@ -24,7 +28,24 @@ def test_member_form_normalizes_masked_cpf():
 
     assert form.is_valid(), form.errors
     assert form.cleaned_data["cpf"] == "12345678901"
+    assert form.cleaned_data["baptism_date"] == date(2001, 2, 3)
+    assert form.cleaned_data["acclamation_date"] == date(2020, 4, 5)
     assert form.cleaned_data["include_in_birthday_list"] is True
+
+
+def test_member_form_requires_reason_when_inactive():
+    """Member form should require a reason when the member is inactive."""
+    form = MemberForm(
+        data={
+            "name": "Maria Silva",
+            "include_in_birthday_list": "on",
+            "is_active": "",
+            "inactive_reason": "",
+        }
+    )
+
+    assert not form.is_valid()
+    assert "inactive_reason" in form.errors
 
 
 def test_address_form_normalizes_postal_code_and_state():

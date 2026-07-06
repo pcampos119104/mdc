@@ -1,5 +1,6 @@
 """Member model for the members app."""
 
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -35,11 +36,6 @@ class Member(SoftDeleteModel):
         blank=True,
         help_text="Classificacao da pessoa, por exemplo: Pessoa, Lideranca ou Pastor.",
     )
-    member_type = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Tipo de membro ou area principal de atuacao.",
-    )
     cpf = models.CharField(
         max_length=11,
         blank=True,
@@ -52,6 +48,16 @@ class Member(SoftDeleteModel):
         blank=True,
         null=True,
         help_text="Data de nascimento do membro.",
+    )
+    baptism_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Data do batismo do membro.",
+    )
+    acclamation_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Data da aclamacao do membro.",
     )
     include_in_birthday_list = models.BooleanField(
         default=True,
@@ -107,6 +113,10 @@ class Member(SoftDeleteModel):
         default=True,
         help_text="Indica se o cadastro do membro esta ativo no sistema.",
     )
+    inactive_reason = models.TextField(
+        blank=True,
+        help_text="Motivo informado quando o cadastro do membro esta inativo.",
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Data e hora em que o cadastro foi criado.",
@@ -122,3 +132,13 @@ class Member(SoftDeleteModel):
     def __str__(self):
         """Return the member name for admin and shell displays."""
         return self.name
+
+    def clean(self):
+        """Require an inactive reason when the member is marked inactive."""
+        super().clean()
+
+        inactive_reason = str(getattr(self, "inactive_reason", "") or "").strip()
+        if not self.is_active and not inactive_reason:
+            raise ValidationError(
+                {"inactive_reason": "Informe o motivo para inativar o cadastro."}
+            )

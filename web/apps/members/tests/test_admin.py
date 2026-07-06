@@ -16,10 +16,13 @@ def test_models_are_registered_in_admin():
 
 
 def test_member_admin_exposes_birthday_list_field():
-    """Member admin should expose the birthday list flag for quick management."""
+    """Member admin should expose relevant quick management fields."""
     member_admin = site._registry[Member]
 
     assert isinstance(member_admin, MemberAdmin)
+    assert "member_type" not in member_admin.list_display
+    assert "baptism_date" in member_admin.list_display
+    assert "acclamation_date" in member_admin.list_display
     assert "include_in_birthday_list" in member_admin.list_display
     assert "include_in_birthday_list" in member_admin.list_filter
 

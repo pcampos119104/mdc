@@ -32,9 +32,10 @@ class MemberForm(forms.ModelForm):
             "name",
             "registration_type",
             "person_type",
-            "member_type",
             "cpf",
             "birth_date",
+            "baptism_date",
+            "acclamation_date",
             "include_in_birthday_list",
             "sex",
             "nationality",
@@ -46,14 +47,16 @@ class MemberForm(forms.ModelForm):
             "marital_status",
             "marriage_date",
             "is_active",
+            "inactive_reason",
         ]
         labels = {
             "name": "Nome completo",
             "registration_type": "Tipo de cadastro",
             "person_type": "Classificacao",
-            "member_type": "Tipo de membro",
             "cpf": "CPF",
             "birth_date": "Data de nascimento",
+            "baptism_date": "Data do batismo",
+            "acclamation_date": "Data da aclamacao",
             "include_in_birthday_list": "Incluir na lista de aniversariantes",
             "sex": "Sexo",
             "nationality": "Nacionalidade",
@@ -65,9 +68,18 @@ class MemberForm(forms.ModelForm):
             "marital_status": "Estado civil",
             "marriage_date": "Data do casamento",
             "is_active": "Cadastro ativo",
+            "inactive_reason": "Motivo da inativacao",
         }
         widgets = {
             "birth_date": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
+            ),
+            "baptism_date": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
+            ),
+            "acclamation_date": forms.DateInput(
                 attrs={"type": "date"},
                 format="%Y-%m-%d",
             ),
@@ -75,12 +87,15 @@ class MemberForm(forms.ModelForm):
                 attrs={"type": "date"},
                 format="%Y-%m-%d",
             ),
+            "inactive_reason": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):
         """Configure date parsing for browser date inputs."""
         super().__init__(*args, **kwargs)
         self.fields["birth_date"].input_formats = ["%Y-%m-%d"]
+        self.fields["baptism_date"].input_formats = ["%Y-%m-%d"]
+        self.fields["acclamation_date"].input_formats = ["%Y-%m-%d"]
         self.fields["marriage_date"].input_formats = ["%Y-%m-%d"]
 
     def clean_cpf(self):

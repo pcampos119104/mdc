@@ -26,13 +26,14 @@ class MemberAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "person_type",
-        "member_type",
         "email",
+        "baptism_date",
+        "acclamation_date",
         "include_in_birthday_list",
         "is_active",
         "created_at",
     )
-    list_filter = ("person_type", "member_type", "include_in_birthday_list", "is_active")
+    list_filter = ("person_type", "include_in_birthday_list", "is_active")
     search_fields = ("name", "email", "cpf", "father_name", "mother_name", "spouse_name")
     inlines = [AddressInline, PhoneInline]
 
