@@ -92,7 +92,7 @@ class MemberCreateView(LoginRequiredMixin, View):
     def post(self, request):
         """Validate and create a member with address and phone numbers."""
         member = Member()
-        member_form = MemberForm(request.POST, instance=member)
+        member_form = MemberForm(request.POST, request.FILES, instance=member)
         address_form = AddressForm(request.POST)
         phone_formset = PhoneFormSet(request.POST, instance=member)
 
@@ -141,7 +141,7 @@ class MemberUpdateView(LoginRequiredMixin, View):
     def post(self, request, pk):
         """Validate and update a member with address and phone numbers."""
         member = get_object_or_404(Member, pk=pk)
-        member_form = MemberForm(request.POST, instance=member)
+        member_form = MemberForm(request.POST, request.FILES, instance=member)
         address_form = AddressForm(
             request.POST,
             instance=_get_member_address(member),

@@ -3,11 +3,25 @@
 import pytest
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import render as django_render
 from django.urls import reverse
 
 from apps.members import views as member_views
 from apps.members.models import Address, Member, Phone
+
+
+def _image_upload(name="member.gif"):
+    """Return a small valid image upload for member photo tests."""
+    return SimpleUploadedFile(
+        name,
+        (
+            b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00"
+            b"\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00"
+            b"\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+        ),
+        content_type="image/gif",
+    )
 
 
 def _create_user(django_user_model):
@@ -140,6 +154,36 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
 
 
 @pytest.mark.django_db
+def test_member_list_renders_photo_and_avatar_fallback(
+    rf,
+    django_user_model,
+    monkeypatch,
+    settings,
+    tmp_path,
+):
+    """Members list should show a photo thumbnail or initials fallback."""
+    settings.MEDIA_ROOT = tmp_path
+    user = _create_user(django_user_model)
+    member_with_photo = Member.objects.create(
+        name="Maria Silva",
+        photo=_image_upload("maria.gif"),
+    )
+    member_without_photo = Member.objects.create(name="Joao Souza")
+    template_names = _record_rendered_templates(monkeypatch)
+    request = _attach_request_state(rf.get(reverse("members:list")), user)
+
+    response = member_views.member_list(request)
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert template_names == ["members/member_list.html"]
+    assert f'alt="Foto de {member_with_photo.name}"' in content
+    assert member_with_photo.photo.url in content
+    assert "JS" in content
+    assert f'aria-label="Avatar de {member_without_photo.name}"' in content
+
+
+@pytest.mark.django_db
 def test_member_create_page_renders_for_authenticated_user(
     rf,
     django_user_model,
@@ -155,6 +199,7 @@ def test_member_create_page_renders_for_authenticated_user(
     assert response.status_code == 200
     assert template_names == ["members/member_form.html"]
     assert b"Incluir na lista de aniversariantes" in response.content
+    assert b'enctype="multipart/form-data"' in response.content
 
 
 @pytest.mark.django_db
@@ -178,6 +223,27 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert phone.number == "11999999999"
     assert phone.is_primary is True
     assert phone.has_whatsapp is True
+
+
+@pytest.mark.django_db
+def test_member_create_saves_uploaded_photo(
+    client,
+    django_user_model,
+    settings,
+    tmp_path,
+):
+    """Valid member creation should store an uploaded member photo."""
+    settings.MEDIA_ROOT = tmp_path
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    data = _member_post_data(photo=_image_upload("maria.gif"))
+
+    response = client.post(reverse("members:create"), data)
+
+    assert response.status_code == 302
+    member = Member.objects.get(name="Maria Silva")
+    assert member.photo.name.startswith("members/")
+    assert (tmp_path / member.photo.name).exists()
 
 
 @pytest.mark.django_db
@@ -280,6 +346,59 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     assert phone.kind == Phone.KIND_HOME
     assert phone.number == "1133334444"
     assert phone.has_whatsapp is False
+
+
+@pytest.mark.django_db
+def test_member_update_replaces_uploaded_photo(
+    client,
+    django_user_model,
+    settings,
+    tmp_path,
+):
+    """Valid member update should replace the stored member photo."""
+    settings.MEDIA_ROOT = tmp_path
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    member = Member.objects.create(
+        name="Maria Silva",
+        photo=_image_upload("old.gif"),
+    )
+    old_photo_name = member.photo.name
+    data = _member_post_data(photo=_image_upload("new.gif"))
+
+    response = client.post(reverse("members:update", args=[member.pk]), data)
+
+    assert response.status_code == 302
+    member.refresh_from_db()
+    assert member.photo.name != old_photo_name
+    assert member.photo.name.startswith("members/")
+    assert (tmp_path / member.photo.name).exists()
+
+
+@pytest.mark.django_db
+def test_member_update_keeps_photo_when_no_new_upload(
+    client,
+    django_user_model,
+    settings,
+    tmp_path,
+):
+    """Member update should preserve the current photo when no file is sent."""
+    settings.MEDIA_ROOT = tmp_path
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    member = Member.objects.create(
+        name="Maria Silva",
+        photo=_image_upload("current.gif"),
+    )
+    current_photo_name = member.photo.name
+    data = _member_post_data(name="Maria Silva Atualizada")
+
+    response = client.post(reverse("members:update", args=[member.pk]), data)
+
+    assert response.status_code == 302
+    member.refresh_from_db()
+    assert member.name == "Maria Silva Atualizada"
+    assert member.photo.name == current_photo_name
 
 
 @pytest.mark.django_db

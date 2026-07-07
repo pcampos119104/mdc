@@ -30,6 +30,7 @@ class MemberForm(forms.ModelForm):
         model = Member
         fields = [
             "name",
+            "photo",
             "registration_type",
             "person_type",
             "cpf",
@@ -51,6 +52,7 @@ class MemberForm(forms.ModelForm):
         ]
         labels = {
             "name": "Nome completo",
+            "photo": "Foto",
             "registration_type": "Tipo de cadastro",
             "person_type": "Classificacao",
             "cpf": "CPF",
@@ -71,6 +73,7 @@ class MemberForm(forms.ModelForm):
             "inactive_reason": "Motivo da inativacao",
         }
         widgets = {
+            "photo": forms.FileInput(attrs={"accept": "image/*"}),
             "birth_date": forms.DateInput(
                 attrs={"type": "date"},
                 format="%Y-%m-%d",

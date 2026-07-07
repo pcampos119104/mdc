@@ -26,6 +26,12 @@ class Member(SoftDeleteModel):
         WIDOWED = "widowed", "Viuvo(a)"
 
     name = models.CharField(max_length=255, help_text="Nome completo do membro.")
+    photo = models.ImageField(
+        upload_to="members/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="Foto do membro para identificacao visual no sistema.",
+    )
     registration_type = models.CharField(
         max_length=100,
         blank=True,
@@ -132,6 +138,15 @@ class Member(SoftDeleteModel):
     def __str__(self):
         """Return the member name for admin and shell displays."""
         return self.name
+
+    @property
+    def initials(self):
+        """Return up to two initials for avatar fallback displays."""
+        name_parts = [part for part in self.name.split() if part]
+        if not name_parts:
+            return "?"
+
+        return "".join(part[0].upper() for part in name_parts[:2])
 
     def clean(self):
         """Require an inactive reason when the member is marked inactive."""

@@ -70,6 +70,13 @@ def test_member_requires_inactive_reason_when_inactive():
     assert "inactive_reason" in exc_info.value.message_dict
 
 
+def test_member_initials_use_first_two_name_parts():
+    """Member initials should provide a simple avatar fallback."""
+    member = Member(name="Maria Silva Santos")
+
+    assert member.initials == "MS"
+
+
 @pytest.mark.django_db
 def test_member_address_belongs_to_member():
     """Address should be linked to a single member."""
@@ -175,6 +182,10 @@ def test_member_fields_expose_help_texts():
     assert (
         Member._meta.get_field("inactive_reason").help_text
         == "Motivo informado quando o cadastro do membro esta inativo."
+    )
+    assert (
+        Member._meta.get_field("photo").help_text
+        == "Foto do membro para identificacao visual no sistema."
     )
     assert (
         Phone._meta.get_field("has_whatsapp").help_text

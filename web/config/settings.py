@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "django_cotton",
+    "storages",
     "apps.members",
 ]
 
@@ -134,6 +135,10 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "mediafiles"
+MEDIA_LOCATION = "media"
+
 STATICFILES_STORAGE_BACKEND = os.environ.get(
     "DJANGO_STATICFILES_STORAGE",
     "django.contrib.staticfiles.storage.StaticFilesStorage"
@@ -141,10 +146,39 @@ STATICFILES_STORAGE_BACKEND = os.environ.get(
     else "whitenoise.storage.CompressedManifestStaticFilesStorage",
 )
 
+def media_storage_config():
+    """Return the default file storage configuration for local or S3 media."""
+    if not parse_bool_env("DJANGO_USE_S3"):
+        return {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        }
+
+    default_acl = os.environ.get("AWS_DEFAULT_ACL", "public-read") or None
+    options = {
+        "access_key": os.environ.get("AWS_ACCESS_KEY_ID", ""),
+        "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY", ""),
+        "bucket_name": os.environ.get("AWS_STORAGE_BUCKET_NAME", ""),
+        "endpoint_url": os.environ.get("AWS_S3_ENDPOINT_URL", ""),
+        "region_name": os.environ.get("AWS_S3_REGION_NAME", "us-east-1"),
+        "addressing_style": os.environ.get("AWS_S3_ADDRESSING_STYLE", "path"),
+        "querystring_auth": parse_bool_env("AWS_QUERYSTRING_AUTH"),
+        "default_acl": default_acl,
+        "location": MEDIA_LOCATION,
+    }
+
+    custom_domain = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "")
+    if custom_domain:
+        options["custom_domain"] = custom_domain
+        options["url_protocol"] = os.environ.get("AWS_S3_URL_PROTOCOL", "https:")
+
+    return {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": options,
+    }
+
+
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
+    "default": media_storage_config(),
     "staticfiles": {
         "BACKEND": STATICFILES_STORAGE_BACKEND,
     },

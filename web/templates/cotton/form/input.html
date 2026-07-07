@@ -26,6 +26,7 @@
             {# Formata datas do Django no valor aceito pelo input date. #}
             {% if input_type == "date" %}
                 value="{{ field.value|date:'Y-m-d'|default:field.value|default_if_none:'' }}"
+            {% elif input_type == "file" %}
             {% else %}
                 value="{{ field.value|default_if_none:'' }}"
             {% endif %}
@@ -42,6 +43,8 @@
             {% if field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
             {# Repassa sugestao de autocomplete configurada no widget. #}
             {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
+            {# Repassa restricao de tipos de arquivo configurada no widget. #}
+            {% if field.field.widget.attrs.accept %}accept="{{ field.field.widget.attrs.accept }}"{% endif %}
             {# Repassa limites numericos ou de data definidos no widget. #}
             {% if field.field.widget.attrs.min %}min="{{ field.field.widget.attrs.min }}"{% endif %}
             {% if field.field.widget.attrs.max %}max="{{ field.field.widget.attrs.max }}"{% endif %}
