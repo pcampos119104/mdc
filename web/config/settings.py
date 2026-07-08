@@ -20,6 +20,18 @@ def parse_bool_env(name, default=False):
     return os.environ.get(name, str(int(default))).lower() in {"1", "true", "yes", "on"}
 
 
+def parse_int_env(name, default):
+    """Return an integer environment variable value or the provided default."""
+    value = os.environ.get(name)
+    if value is None:
+        return default
+
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
 def database_config_from_url(database_url):
     """Return Django database settings parsed from a PostgreSQL DATABASE_URL."""
     parsed_url = urlparse(database_url)
@@ -153,7 +165,8 @@ def media_storage_config():
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         }
 
-    default_acl = os.environ.get("AWS_DEFAULT_ACL", "public-read") or None
+    querystring_auth = parse_bool_env("AWS_QUERYSTRING_AUTH", default=True)
+    default_acl = os.environ.get("AWS_DEFAULT_ACL", "private") or None
     options = {
         "access_key": os.environ.get("AWS_ACCESS_KEY_ID", ""),
         "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY", ""),
@@ -161,13 +174,14 @@ def media_storage_config():
         "endpoint_url": os.environ.get("AWS_S3_ENDPOINT_URL", ""),
         "region_name": os.environ.get("AWS_S3_REGION_NAME", "us-east-1"),
         "addressing_style": os.environ.get("AWS_S3_ADDRESSING_STYLE", "path"),
-        "querystring_auth": parse_bool_env("AWS_QUERYSTRING_AUTH"),
+        "querystring_auth": querystring_auth,
+        "querystring_expire": parse_int_env("AWS_QUERYSTRING_EXPIRE", 300),
         "default_acl": default_acl,
         "location": MEDIA_LOCATION,
     }
 
     custom_domain = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "")
-    if custom_domain:
+    if custom_domain and not querystring_auth:
         options["custom_domain"] = custom_domain
         options["url_protocol"] = os.environ.get("AWS_S3_URL_PROTOCOL", "https:")
 

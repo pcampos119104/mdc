@@ -121,19 +121,22 @@ Local development uses Django filesystem media storage by default. Uploaded
 member photos are stored under `web/mediafiles/` and served by Django only when
 `DJANGO_DEBUG=1`.
 
-To use a RustFS/S3-compatible service, keep RustFS as a separate service on the
-same Docker network and enable S3 explicitly:
+To use a RustFS/S3-compatible service with private member photos, keep RustFS as
+a separate service and enable S3 explicitly. Uploaded files stay private in the
+bucket, and `django-storages` generates short-lived presigned URLs when Django
+renders `member.photo.url` in authenticated pages.
 
 ```env
 DJANGO_USE_S3=1
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 AWS_STORAGE_BUCKET_NAME=mdc-media
-AWS_S3_ENDPOINT_URL=http://rustfs:9000
+AWS_S3_ENDPOINT_URL=https://s3.faramir.com.br
 AWS_S3_REGION_NAME=us-east-1
 AWS_S3_ADDRESSING_STYLE=path
-AWS_QUERYSTRING_AUTH=0
-AWS_DEFAULT_ACL=public-read
+AWS_QUERYSTRING_AUTH=1
+AWS_QUERYSTRING_EXPIRE=300
+AWS_DEFAULT_ACL=private
 ```
 
 The bucket named in `AWS_STORAGE_BUCKET_NAME` must exist before the first upload.
@@ -141,18 +144,26 @@ The example bucket name is `mdc-media`; change it through the environment for
 each deployment. Uploaded media is stored with the `media/` prefix inside the
 bucket.
 
-`AWS_S3_ENDPOINT_URL=http://rustfs:9000` is the expected internal Docker network
-endpoint when the RustFS container is named `rustfs`. If browsers cannot access
-that hostname directly, expose RustFS through a reverse proxy or public endpoint
-and configure URL generation with:
+For presigned URLs, `AWS_S3_ENDPOINT_URL` must be reachable both by the Django
+container and by users' browsers. Do not set it to an internal-only Docker host
+such as `http://rustfs:9000` for this mode, because the generated URL would also
+contain that internal hostname. In Dokploy, point it to the public HTTPS RustFS
+endpoint, for example `https://s3.faramir.com.br`.
+
+Keep `AWS_S3_CUSTOM_DOMAIN` empty when `AWS_QUERYSTRING_AUTH=1`. The S3 backend
+generates presigned URLs from `AWS_S3_ENDPOINT_URL`; setting a custom domain is
+only useful for public, unsigned media URLs or a separate CDN signing setup.
+
+If the RustFS deployment does not accept object ACLs, use an empty ACL and rely
+on the bucket policy/user permissions instead:
 
 ```env
-AWS_S3_CUSTOM_DOMAIN=media.example.com
-AWS_S3_URL_PROTOCOL=https:
+AWS_DEFAULT_ACL=
 ```
 
-Keep `AWS_QUERYSTRING_AUTH=0` for public media URLs unless the deployment
-intentionally requires private signed URLs.
+Do not add public bucket policies for member photos. The Django access key needs
+read/write permissions for `mdc-media/media/*`, while browser access should
+happen through presigned URLs that expire after `AWS_QUERYSTRING_EXPIRE` seconds.
 
 ## Sentry
 
