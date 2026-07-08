@@ -134,6 +134,7 @@ AWS_STORAGE_BUCKET_NAME=mdc-media
 AWS_S3_ENDPOINT_URL=https://s3.faramir.com.br
 AWS_S3_REGION_NAME=us-east-1
 AWS_S3_ADDRESSING_STYLE=path
+AWS_S3_SIGNATURE_VERSION=s3v4
 AWS_QUERYSTRING_AUTH=1
 AWS_QUERYSTRING_EXPIRE=300
 AWS_DEFAULT_ACL=private
@@ -164,6 +165,8 @@ AWS_DEFAULT_ACL=
 Do not add public bucket policies for member photos. The Django access key needs
 read/write permissions for `mdc-media/media/*`, while browser access should
 happen through presigned URLs that expire after `AWS_QUERYSTRING_EXPIRE` seconds.
+`AWS_S3_SIGNATURE_VERSION=s3v4` keeps signing explicit for RustFS-compatible
+presigned URLs.
 
 ## Sentry
 

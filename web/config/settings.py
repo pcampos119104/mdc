@@ -174,6 +174,7 @@ def media_storage_config():
         "endpoint_url": os.environ.get("AWS_S3_ENDPOINT_URL", ""),
         "region_name": os.environ.get("AWS_S3_REGION_NAME", "us-east-1"),
         "addressing_style": os.environ.get("AWS_S3_ADDRESSING_STYLE", "path"),
+        "signature_version": os.environ.get("AWS_S3_SIGNATURE_VERSION", "s3v4"),
         "querystring_auth": querystring_auth,
         "querystring_expire": parse_int_env("AWS_QUERYSTRING_EXPIRE", 300),
         "default_acl": default_acl,

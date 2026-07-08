@@ -23,6 +23,7 @@ def test_media_storage_uses_s3_when_enabled(monkeypatch):
     monkeypatch.setenv("AWS_S3_ENDPOINT_URL", "https://s3.faramir.com.br")
     monkeypatch.setenv("AWS_S3_REGION_NAME", "us-east-1")
     monkeypatch.setenv("AWS_S3_ADDRESSING_STYLE", "path")
+    monkeypatch.setenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
     monkeypatch.setenv("AWS_QUERYSTRING_AUTH", "1")
     monkeypatch.setenv("AWS_QUERYSTRING_EXPIRE", "300")
     monkeypatch.setenv("AWS_DEFAULT_ACL", "private")
@@ -38,6 +39,7 @@ def test_media_storage_uses_s3_when_enabled(monkeypatch):
         "endpoint_url": "https://s3.faramir.com.br",
         "region_name": "us-east-1",
         "addressing_style": "path",
+        "signature_version": "s3v4",
         "querystring_auth": True,
         "querystring_expire": 300,
         "default_acl": "private",
