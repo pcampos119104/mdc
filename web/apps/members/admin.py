@@ -25,7 +25,8 @@ class MemberAdmin(admin.ModelAdmin):
 
     list_display = (
         "name",
-        "person_type",
+        "registration_type",
+        "classifications_display",
         "email",
         "baptism_date",
         "acclamation_date",
@@ -33,9 +34,14 @@ class MemberAdmin(admin.ModelAdmin):
         "is_active",
         "created_at",
     )
-    list_filter = ("person_type", "include_in_birthday_list", "is_active")
+    list_filter = ("registration_type", "include_in_birthday_list", "is_active")
     search_fields = ("name", "email", "cpf", "father_name", "mother_name", "spouse_name")
     inlines = [AddressInline, PhoneInline]
+
+    @admin.display(description="Classificacao")
+    def classifications_display(self, obj):
+        """Return member classifications for the admin changelist."""
+        return obj.get_classifications_display()
 
 
 @admin.register(Address)

@@ -59,8 +59,8 @@
                         <p class="font-semibold text-slate-950">{{ member.name }}</p>
                         <div class="mt-1 space-y-1 text-xs text-slate-500">
                           {% if member.cpf %}<p>CPF: {{ member.cpf }}</p>{% endif %}
-                          {% if member.registration_type %}<p>Cadastro: {{ member.registration_type }}</p>{% endif %}
-                          {% if member.person_type %}<p>Classificacao: {{ member.person_type }}</p>{% endif %}
+                          {% if member.registration_type %}<p>Cadastro: {{ member.get_registration_type_display }}</p>{% endif %}
+                          {% if member.classifications %}<p>Classificacao: {{ member.get_classifications_display }}</p>{% endif %}
                         </div>
                       </div>
                     </div>
@@ -72,7 +72,6 @@
                       {% if member.acclamation_date %}<p>Aclamacao: {{ member.acclamation_date|date:"d/m/Y" }}</p>{% endif %}
                       <p>Aniversariantes: {% if member.include_in_birthday_list %}Sim{% else %}Nao{% endif %}</p>
                       {% if member.sex %}<p>Sexo: {{ member.get_sex_display }}</p>{% endif %}
-                      {% if member.nationality %}<p>Nacionalidade: {{ member.nationality }}</p>{% endif %}
                       {% if member.birthplace %}<p>Naturalidade: {{ member.birthplace }}</p>{% endif %}
                       {% if member.marital_status %}<p>Estado civil: {{ member.get_marital_status_display }}</p>{% endif %}
                       {% if member.spouse_name %}<p>Conjuge: {{ member.spouse_name }}</p>{% endif %}

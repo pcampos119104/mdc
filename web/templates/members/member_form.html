@@ -45,8 +45,30 @@
               {% endif %}
               <c-form.input :field="member_form.photo" help_text="Envie uma imagem do membro. Ao editar, deixe em branco para manter a foto atual." />
             </div>
-            <c-form.input :field="member_form.registration_type" />
-            <c-form.input :field="member_form.person_type" />
+            <c-form.select :field="member_form.registration_type" />
+            <div>
+              <fieldset>
+                <legend class="mb-2 block text-sm font-medium {% if member_form.classifications.errors %}text-red-700{% else %}text-slate-900{% endif %}">
+                  {{ member_form.classifications.label }}
+                </legend>
+                <div class="grid gap-2 rounded-lg border p-3 {% if member_form.classifications.errors %}border-red-300 bg-red-50{% else %}border-slate-200 bg-slate-50{% endif %}">
+                  {% for checkbox in member_form.classifications %}
+                    <label for="{{ checkbox.id_for_label }}" class="flex items-center gap-2 text-sm text-slate-900">
+                      {{ checkbox.tag }}
+                      <span>{{ checkbox.choice_label }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+                {% if member_form.classifications.help_text %}
+                  <p class="mt-1 text-xs text-slate-500">{{ member_form.classifications.help_text }}</p>
+                {% endif %}
+                {% if member_form.classifications.errors %}
+                  <div class="mt-2 space-y-1">
+                    {% for error in member_form.classifications.errors %}<p class="text-sm text-red-600">{{ error }}</p>{% endfor %}
+                  </div>
+                {% endif %}
+              </fieldset>
+            </div>
             <c-form.input :field="member_form.cpf" />
 
             <div class="sm:col-span-2 pt-2">
@@ -55,7 +77,6 @@
 
             <c-form.input :field="member_form.birth_date" />
             <c-form.select :field="member_form.sex" />
-            <c-form.input :field="member_form.nationality" />
             <c-form.input :field="member_form.birthplace" />
             <c-form.input :field="member_form.email" class="sm:col-span-2" />
 

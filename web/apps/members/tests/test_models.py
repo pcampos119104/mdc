@@ -14,14 +14,13 @@ def test_member_can_be_created_with_initial_fields():
     """Member should persist the initial registration fields."""
     member = Member.objects.create(
         name="Ailton Quaresma Trindade Junior",
-        registration_type="Lideranca",
-        person_type="Pessoa",
+        registration_type=Member.RegistrationType.LEADERSHIP,
+        classifications=[Member.Classification.WORSHIP, Member.Classification.PASTORAL],
         cpf="22406088898",
         birth_date=date(1982, 3, 29),
         baptism_date=date(1999, 6, 12),
         acclamation_date=date(2020, 8, 9),
         sex=Member.Sex.MALE,
-        nationality="Brazil",
         birthplace="Sao Paulo SP",
         email="ailtontrindade84@gmail.com",
         father_name="Ailton Quaresma Trindade",
@@ -37,6 +36,8 @@ def test_member_can_be_created_with_initial_fields():
     assert member.acclamation_date == date(2020, 8, 9)
     assert member.is_active is True
     assert member.include_in_birthday_list is True
+    assert member.get_registration_type_display() == "Lideranca"
+    assert member.get_classifications_display() == "Louvor, Pastoral"
     assert str(member) == member.name
 
 
@@ -54,7 +55,13 @@ def test_member_cpf_is_unique_when_present_and_optional_when_empty():
 
 def test_member_rejects_invalid_structured_values():
     """Structured member fields should validate constrained values."""
-    member = Member(name="Maria Silva", cpf="123", sex="outro")
+    member = Member(
+        name="Maria Silva",
+        cpf="123",
+        sex="outro",
+        registration_type="visitante",
+        classifications=["invalid"],
+    )
 
     with pytest.raises(ValidationError):
         member.full_clean()
@@ -186,6 +193,14 @@ def test_member_fields_expose_help_texts():
     assert (
         Member._meta.get_field("photo").help_text
         == "Foto do membro para identificacao visual no sistema."
+    )
+    assert (
+        Member._meta.get_field("registration_type").help_text
+        == "Tipo de cadastro do membro na igreja."
+    )
+    assert (
+        Member._meta.get_field("classifications").help_text
+        == "Classificacoes ministeriais vinculadas ao membro."
     )
     assert (
         Phone._meta.get_field("has_whatsapp").help_text

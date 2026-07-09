@@ -16,6 +16,11 @@ def test_member_form_normalizes_masked_cpf():
     form = MemberForm(
         data={
             "name": "Maria Silva",
+            "registration_type": Member.RegistrationType.MEMBER,
+            "classifications": [
+                Member.Classification.CELEBRANDO,
+                Member.Classification.WOMEN,
+            ],
             "cpf": "123.456.789-01",
             "baptism_date": "2001-02-03",
             "acclamation_date": "2020-04-05",
@@ -31,6 +36,19 @@ def test_member_form_normalizes_masked_cpf():
     assert form.cleaned_data["baptism_date"] == date(2001, 2, 3)
     assert form.cleaned_data["acclamation_date"] == date(2020, 4, 5)
     assert form.cleaned_data["include_in_birthday_list"] is True
+    assert form.cleaned_data["registration_type"] == Member.RegistrationType.MEMBER
+    assert form.cleaned_data["classifications"] == [
+        Member.Classification.CELEBRANDO,
+        Member.Classification.WOMEN,
+    ]
+
+
+def test_member_form_requires_registration_type():
+    """Member form should require the registration type."""
+    form = MemberForm(data={"name": "Maria Silva", "registration_type": ""})
+
+    assert not form.is_valid()
+    assert "registration_type" in form.errors
 
 
 def test_member_form_requires_reason_when_inactive():

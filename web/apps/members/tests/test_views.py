@@ -37,15 +37,17 @@ def _member_post_data(**overrides):
     """Build member POST data, including address and phone formset fields."""
     data = {
         "name": "Maria Silva",
-        "registration_type": "Membro",
-        "person_type": "Pessoa",
+        "registration_type": Member.RegistrationType.MEMBER,
+        "classifications": [
+            Member.Classification.CELEBRANDO,
+            Member.Classification.WORSHIP,
+        ],
         "cpf": "123.456.789-00",
         "birth_date": "1990-01-02",
         "baptism_date": "2001-02-03",
         "acclamation_date": "2020-04-05",
         "include_in_birthday_list": "on",
         "sex": Member.Sex.FEMALE,
-        "nationality": "Brasil",
         "birthplace": "Sao Paulo SP",
         "email": "maria@example.com",
         "father_name": "Jose Silva",
@@ -216,6 +218,11 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert member.cpf == "12345678900"
     assert member.baptism_date.isoformat() == "2001-02-03"
     assert member.acclamation_date.isoformat() == "2020-04-05"
+    assert member.registration_type == Member.RegistrationType.MEMBER
+    assert member.classifications == [
+        Member.Classification.CELEBRANDO,
+        Member.Classification.WORSHIP,
+    ]
     assert member.include_in_birthday_list is True
     assert member.address.city == "Sao Paulo"
     assert member.address.postal_code == "01001000"

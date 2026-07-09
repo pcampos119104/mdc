@@ -25,6 +25,12 @@ class MemberForm(forms.ModelForm):
     """Validate the main registration data for a member."""
 
     cpf = forms.CharField(required=False, max_length=14, label="CPF")
+    classifications = forms.MultipleChoiceField(
+        choices=Member.Classification.choices,
+        required=False,
+        label="Classificacao",
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = Member
@@ -32,14 +38,13 @@ class MemberForm(forms.ModelForm):
             "name",
             "photo",
             "registration_type",
-            "person_type",
+            "classifications",
             "cpf",
             "birth_date",
             "baptism_date",
             "acclamation_date",
             "include_in_birthday_list",
             "sex",
-            "nationality",
             "birthplace",
             "email",
             "father_name",
@@ -54,14 +59,12 @@ class MemberForm(forms.ModelForm):
             "name": "Nome completo",
             "photo": "Foto",
             "registration_type": "Tipo de cadastro",
-            "person_type": "Classificacao",
             "cpf": "CPF",
             "birth_date": "Data de nascimento",
             "baptism_date": "Data do batismo",
             "acclamation_date": "Data da aclamacao",
             "include_in_birthday_list": "Incluir na lista de aniversariantes",
             "sex": "Sexo",
-            "nationality": "Nacionalidade",
             "birthplace": "Naturalidade",
             "email": "E-mail",
             "father_name": "Nome do pai",
@@ -74,6 +77,7 @@ class MemberForm(forms.ModelForm):
         }
         widgets = {
             "photo": forms.FileInput(attrs={"accept": "image/*"}),
+            "registration_type": forms.Select,
             "birth_date": forms.DateInput(
                 attrs={"type": "date"},
                 format="%Y-%m-%d",

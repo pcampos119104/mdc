@@ -10,6 +10,25 @@ from .base import SoftDeleteModel
 class Member(SoftDeleteModel):
     """Store the main registration data for a church member."""
 
+    class RegistrationType(models.TextChoices):
+        """Allowed registration type values for member records."""
+
+        LEADERSHIP = "lideranca", "Lideranca"
+        PASTOR = "pastor", "Pastor"
+        MEMBER = "membro", "Membro"
+
+    class Classification(models.TextChoices):
+        """Allowed service and ministry classification values for members."""
+
+        CELEBRANDO = "celebrando", "Celebrando"
+        SOUND_AND_MEDIA = "som_imagem", "Som e imagem"
+        THEATER = "teatro", "Teatro"
+        COMUNAKIDS = "comunakids", "ComunaKids"
+        YOUTH = "jovens", "Jovens"
+        WOMEN = "mulheres", "Mulheres"
+        WORSHIP = "louvor", "Louvor"
+        PASTORAL = "pastoral", "Pastoral"
+
     class Sex(models.TextChoices):
         """Allowed biological sex values for member records."""
 
@@ -33,14 +52,15 @@ class Member(SoftDeleteModel):
         help_text="Foto do membro para identificacao visual no sistema.",
     )
     registration_type = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Tipo de cadastro informado pela igreja, por exemplo: Lideranca.",
+        max_length=20,
+        choices=RegistrationType.choices,
+        default=RegistrationType.MEMBER,
+        help_text="Tipo de cadastro do membro na igreja.",
     )
-    person_type = models.CharField(
-        max_length=100,
+    classifications = models.JSONField(
         blank=True,
-        help_text="Classificacao da pessoa, por exemplo: Pessoa, Lideranca ou Pastor.",
+        default=list,
+        help_text="Classificacoes ministeriais vinculadas ao membro.",
     )
     cpf = models.CharField(
         max_length=11,
@@ -74,11 +94,6 @@ class Member(SoftDeleteModel):
         blank=True,
         choices=Sex.choices,
         help_text="Sexo informado no cadastro.",
-    )
-    nationality = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Nacionalidade do membro.",
     )
     birthplace = models.CharField(
         max_length=255,
@@ -148,12 +163,31 @@ class Member(SoftDeleteModel):
 
         return "".join(part[0].upper() for part in name_parts[:2])
 
+    def get_classifications_display(self):
+        """Return selected classifications as a comma-separated display string."""
+        labels_by_value = dict(self.Classification.choices)
+        labels = [
+            labels_by_value[value]
+            for value in self.classifications
+            if value in labels_by_value
+        ]
+        return ", ".join(labels)
+
     def clean(self):
-        """Require an inactive reason when the member is marked inactive."""
+        """Validate inactive reason and selected classifications."""
         super().clean()
 
         inactive_reason = str(getattr(self, "inactive_reason", "") or "").strip()
         if not self.is_active and not inactive_reason:
             raise ValidationError(
                 {"inactive_reason": "Informe o motivo para inativar o cadastro."}
+            )
+
+        classifications = self.classifications or []
+        valid_classifications = {value for value, _label in self.Classification.choices}
+        if not isinstance(classifications, list) or any(
+            value not in valid_classifications for value in classifications
+        ):
+            raise ValidationError(
+                {"classifications": "Selecione apenas classificacoes validas."}
             )

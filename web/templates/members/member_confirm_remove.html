@@ -14,8 +14,8 @@
 
         <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
           <p><span class="font-semibold text-slate-950">Nome:</span> {{ member.name }}</p>
-          {% if member.registration_type %}<p class="mt-2"><span class="font-semibold text-slate-950">Tipo de cadastro:</span> {{ member.registration_type }}</p>{% endif %}
-          {% if member.person_type %}<p class="mt-2"><span class="font-semibold text-slate-950">Classificacao:</span> {{ member.person_type }}</p>{% endif %}
+          {% if member.registration_type %}<p class="mt-2"><span class="font-semibold text-slate-950">Tipo de cadastro:</span> {{ member.get_registration_type_display }}</p>{% endif %}
+          {% if member.classifications %}<p class="mt-2"><span class="font-semibold text-slate-950">Classificacao:</span> {{ member.get_classifications_display }}</p>{% endif %}
           {% if member.email %}<p class="mt-2"><span class="font-semibold text-slate-950">E-mail:</span> {{ member.email }}</p>{% endif %}
           {% if member.birth_date %}<p class="mt-2"><span class="font-semibold text-slate-950">Nascimento:</span> {{ member.birth_date|date:"d/m/Y" }}</p>{% endif %}
           {% if member.baptism_date %}<p class="mt-2"><span class="font-semibold text-slate-950">Batismo:</span> {{ member.baptism_date|date:"d/m/Y" }}</p>{% endif %}
