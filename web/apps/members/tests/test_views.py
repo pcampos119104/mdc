@@ -114,6 +114,7 @@ def test_member_views_require_authentication(client):
     urls = [
         reverse("members:list"),
         reverse("members:create"),
+        reverse("members:detail", args=[member.pk]),
         reverse("members:update", args=[member.pk]),
         reverse("members:remove", args=[member.pk]),
     ]
@@ -183,6 +184,71 @@ def test_member_list_renders_photo_and_avatar_fallback(
     assert member_with_photo.photo.url in content
     assert "JS" in content
     assert f'aria-label="Avatar de {member_without_photo.name}"' in content
+
+
+@pytest.mark.django_db
+def test_member_detail_renders_member_registration(
+    rf,
+    django_user_model,
+    monkeypatch,
+):
+    """Member detail should display member, address and phone information."""
+    user = _create_user(django_user_model)
+    member = Member.objects.create(
+        name="Maria Silva",
+        registration_type=Member.RegistrationType.MEMBER,
+        classifications=[Member.Classification.CELEBRANDO],
+        cpf="12345678900",
+        birth_date="1990-01-02",
+        baptism_date="2001-02-03",
+        acclamation_date="2020-04-05",
+        sex=Member.Sex.FEMALE,
+        birthplace="Sao Paulo SP",
+        email="maria@example.com",
+        father_name="Jose Silva",
+        mother_name="Ana Silva",
+        spouse_name="Joao Silva",
+        marital_status=Member.MaritalStatus.MARRIED,
+        marriage_date="2015-06-07",
+    )
+    Address.objects.create(
+        member=member,
+        postal_code="01001000",
+        country="Brasil",
+        state="SP",
+        city="Sao Paulo",
+        street="Rua Central",
+        street_number="123",
+        complement="Casa",
+        district="Centro",
+    )
+    Phone.objects.create(
+        member=member,
+        kind=Phone.KIND_MOBILE,
+        number="11999999999",
+        contact_name="Maria",
+        is_primary=True,
+        receives_sms=True,
+        has_whatsapp=True,
+    )
+    template_names = _record_rendered_templates(monkeypatch)
+    request = _attach_request_state(
+        rf.get(reverse("members:detail", args=[member.pk])),
+        user,
+    )
+
+    response = member_views.member_detail(request, pk=member.pk)
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert template_names == ["members/member_detail.html"]
+    assert "Maria Silva" in content
+    assert "12345678900" in content
+    assert "02/01/1990" in content
+    assert "Sao Paulo" in content
+    assert "Rua Central" in content
+    assert "11999999999" in content
+    assert "WhatsApp" in content
 
 
 @pytest.mark.django_db

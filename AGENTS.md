@@ -164,7 +164,9 @@ Use:
 - `pytest`
 - `pytest-django`
 
-Prefer focused tests before running the full suite. When implementing a small feature, run a single relevant test before running all tests.
+Run the test suite with `just test`.
+
+Prefer focused tests while developing when useful, then run `just test` before finishing the task.
 
 Tests should live inside a `tests/` directory within the related app.
 

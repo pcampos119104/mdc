@@ -63,6 +63,24 @@ def _get_member_address(member):
         return None
 
 
+@login_required
+def member_detail(request, pk):
+    """Display a member registration with all related information."""
+    member = get_object_or_404(
+        Member.objects.select_related("address").prefetch_related("phones"),
+        pk=pk,
+    )
+    return render(
+        request,
+        "members/member_detail.html",
+        {
+            "member": member,
+            "address": _get_member_address(member),
+            "phones": member.phones.all(),
+        },
+    )
+
+
 def _member_form_context(member_form, address_form, phone_formset, *, title, submit_label):
     """Build context data shared by member create and update views."""
     return {

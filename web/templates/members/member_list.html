@@ -112,6 +112,7 @@
                   </td>
                   <td class="px-5 py-4 text-right">
                     <div class="flex justify-end gap-2">
+                      <a href="{% url 'members:detail' member.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Ver</a>
                       <a href="{% url 'members:update' member.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Editar</a>
                       <a href="{% url 'members:remove' member.pk %}" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100">Remover</a>
                     </div>
