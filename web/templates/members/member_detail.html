@@ -11,7 +11,7 @@
         <div>
           <p class="text-sm font-medium text-blue-700">Cadastro de membro</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">{{ member.name }}</h1>
-          <p class="mt-2 text-sm text-slate-600">Consulte os dados cadastrais, familiares, endereco residencial e telefones vinculados ao membro.</p>
+          <p class="mt-2 text-sm text-slate-600">Consulte os dados cadastrais, familiares, endereço residencial e telefones vinculados ao membro.</p>
         </div>
         <a href="{% url 'members:list' %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Voltar</a>
       </div>
@@ -20,7 +20,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
             <h2 class="text-lg font-semibold text-slate-950">Dados do membro</h2>
-            <p class="mt-1 text-sm text-slate-500">Informacoes principais, classificacao, nascimento, filiacao e estado civil.</p>
+            <p class="mt-1 text-sm text-slate-500">Informações principais, classificação, nascimento, filiação e estado civil.</p>
           </div>
 
           <dl class="mt-5 grid gap-4 sm:grid-cols-2">
@@ -39,7 +39,7 @@
               {% endif %}
               <div>
                 <dt class="mb-2 block text-sm font-medium text-slate-900">Foto</dt>
-                <dd class="text-sm text-slate-600">{% if member.photo %}Foto cadastrada para identificacao visual.{% else %}Nenhuma foto cadastrada.{% endif %}</dd>
+                <dd class="text-sm text-slate-600">{% if member.photo %}Foto cadastrada para identificação visual.{% else %}Nenhuma foto cadastrada.{% endif %}</dd>
               </div>
             </div>
 
@@ -48,12 +48,12 @@
               <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_registration_type_display }}</dd>
             </div>
             <div>
-              <dt class="mb-2 block text-sm font-medium text-slate-900">Classificacao</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_classifications_display|default:"Nao informado" }}</dd>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Classificação</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_classifications_display|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">CPF</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.cpf|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.cpf|default:"Não informado" }}</dd>
             </div>
 
             <div class="sm:col-span-2 pt-2">
@@ -62,23 +62,23 @@
 
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Data de nascimento</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.birth_date|date:"d/m/Y"|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.birth_date|date:"d/m/Y"|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Sexo</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_sex_display|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_sex_display|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Naturalidade</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.birthplace|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.birthplace|default:"Não informado" }}</dd>
             </div>
             <div>
-              <dt class="mb-2 block text-sm font-medium text-slate-900">Profissao</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.profession|default:"Nao informado" }}</dd>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Profissão</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.profession|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">E-mail</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.email|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.email|default:"Não informado" }}</dd>
             </div>
 
             <div class="sm:col-span-2 pt-2">
@@ -87,11 +87,11 @@
 
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Data do batismo</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.baptism_date|date:"d/m/Y"|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.baptism_date|date:"d/m/Y"|default:"Não informado" }}</dd>
             </div>
             <div>
-              <dt class="mb-2 block text-sm font-medium text-slate-900">Data da aclamacao</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.acclamation_date|date:"d/m/Y"|default:"Nao informado" }}</dd>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Data da aclamação</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.acclamation_date|date:"d/m/Y"|default:"Não informado" }}</dd>
             </div>
 
             <div class="sm:col-span-2 pt-2">
@@ -100,45 +100,45 @@
 
             <div class="sm:col-span-2">
               <dt class="mb-2 block text-sm font-medium text-slate-900">Incluir na lista de aniversariantes</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{% if member.include_in_birthday_list %}Sim{% else %}Nao{% endif %}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{% if member.include_in_birthday_list %}Sim{% else %}Não{% endif %}</dd>
             </div>
 
             <div class="sm:col-span-2 pt-2">
-              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Familia e estado civil</h3>
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Família e estado civil</h3>
             </div>
 
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Nome do pai</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.father_name|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.father_name|default:"Não informado" }}</dd>
             </div>
             <div>
-              <dt class="mb-2 block text-sm font-medium text-slate-900">Nome da mae</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.mother_name|default:"Nao informado" }}</dd>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Nome da mãe</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.mother_name|default:"Não informado" }}</dd>
             </div>
             <div class="sm:col-span-2">
-              <dt class="mb-2 block text-sm font-medium text-slate-900">Nome do conjuge</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.spouse_name|default:"Nao informado" }}</dd>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Nome do cônjuge</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.spouse_name|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Estado civil</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_marital_status_display|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.get_marital_status_display|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Data do casamento</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.marriage_date|date:"d/m/Y"|default:"Nao informado" }}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.marriage_date|date:"d/m/Y"|default:"Não informado" }}</dd>
             </div>
 
             <div class="sm:col-span-2 pt-2">
-              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situacao do cadastro</h3>
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situação do cadastro</h3>
             </div>
 
             <div class="sm:col-span-2">
               <dt class="mb-2 block text-sm font-medium text-slate-900">Cadastro ativo</dt>
-              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{% if member.is_active %}Sim{% else %}Nao{% endif %}</dd>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{% if member.is_active %}Sim{% else %}Não{% endif %}</dd>
             </div>
             <div class="sm:col-span-2">
-              <dt class="mb-2 block text-sm font-medium text-slate-900">Motivo da inativacao</dt>
-              <dd class="min-h-24 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.inactive_reason|default:"Nao informado" }}</dd>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Motivo da inativação</dt>
+              <dd class="min-h-24 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.inactive_reason|default:"Não informado" }}</dd>
             </div>
             <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">Criado em</dt>
@@ -153,47 +153,47 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
-            <h2 class="text-lg font-semibold text-slate-950">Endereco</h2>
-            <p class="mt-1 text-sm text-slate-500">Endereco residencial vinculado a este membro. O CEP e exibido como numero, sem traco.</p>
+            <h2 class="text-lg font-semibold text-slate-950">Endereço</h2>
+            <p class="mt-1 text-sm text-slate-500">Endereço residencial vinculado a este membro. O CEP é exibido como número, sem traço.</p>
           </div>
 
           {% if address %}
             <dl class="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
                 <dt class="mb-2 block text-sm font-medium text-slate-900">CEP</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.postal_code|default:"Nao informado" }}</dd>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.postal_code|default:"Não informado" }}</dd>
               </div>
               <div>
-                <dt class="mb-2 block text-sm font-medium text-slate-900">Pais</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.country|default:"Nao informado" }}</dd>
+                <dt class="mb-2 block text-sm font-medium text-slate-900">País</dt>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.country|default:"Não informado" }}</dd>
               </div>
               <div>
                 <dt class="mb-2 block text-sm font-medium text-slate-900">Estado</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.state|default:"Nao informado" }}</dd>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.state|default:"Não informado" }}</dd>
               </div>
               <div>
                 <dt class="mb-2 block text-sm font-medium text-slate-900">Cidade</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.city|default:"Nao informado" }}</dd>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.city|default:"Não informado" }}</dd>
               </div>
               <div class="sm:col-span-2">
                 <dt class="mb-2 block text-sm font-medium text-slate-900">Logradouro</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.street|default:"Nao informado" }}</dd>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.street|default:"Não informado" }}</dd>
               </div>
               <div>
-                <dt class="mb-2 block text-sm font-medium text-slate-900">Numero</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.street_number|default:"Nao informado" }}</dd>
+                <dt class="mb-2 block text-sm font-medium text-slate-900">Número</dt>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.street_number|default:"Não informado" }}</dd>
               </div>
               <div>
                 <dt class="mb-2 block text-sm font-medium text-slate-900">Bairro</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.district|default:"Nao informado" }}</dd>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.district|default:"Não informado" }}</dd>
               </div>
               <div class="sm:col-span-2">
                 <dt class="mb-2 block text-sm font-medium text-slate-900">Complemento</dt>
-                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.complement|default:"Nao informado" }}</dd>
+                <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ address.complement|default:"Não informado" }}</dd>
               </div>
             </dl>
           {% else %}
-            <p class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">Nenhum endereco cadastrado.</p>
+            <p class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">Nenhum endereço cadastrado.</p>
           {% endif %}
         </div>
 
@@ -219,15 +219,15 @@
                   </div>
                   <div>
                     <dt class="mb-2 block text-sm font-medium text-slate-900">Nome do contato</dt>
-                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{{ phone.contact_name|default:"Nao informado" }}</dd>
+                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{{ phone.contact_name|default:"Não informado" }}</dd>
                   </div>
                   <div>
                     <dt class="mb-2 block text-sm font-medium text-slate-900">Telefone principal</dt>
-                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{% if phone.is_primary %}Sim{% else %}Nao{% endif %}</dd>
+                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{% if phone.is_primary %}Sim{% else %}Não{% endif %}</dd>
                   </div>
                   <div>
                     <dt class="mb-2 block text-sm font-medium text-slate-900">Possui WhatsApp</dt>
-                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{% if phone.has_whatsapp %}Sim{% else %}Nao{% endif %}</dd>
+                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{% if phone.has_whatsapp %}Sim{% else %}Não{% endif %}</dd>
                   </div>
                 </dl>
               </div>

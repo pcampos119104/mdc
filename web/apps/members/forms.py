@@ -28,7 +28,7 @@ class MemberForm(forms.ModelForm):
     classifications = forms.MultipleChoiceField(
         choices=Member.Classification.choices,
         required=False,
-        label="Classificacao",
+        label="Classificação",
         widget=forms.CheckboxSelectMultiple,
     )
 
@@ -63,19 +63,19 @@ class MemberForm(forms.ModelForm):
             "cpf": "CPF",
             "birth_date": "Data de nascimento",
             "baptism_date": "Data do batismo",
-            "acclamation_date": "Data da aclamacao",
+            "acclamation_date": "Data da aclamação",
             "include_in_birthday_list": "Incluir na lista de aniversariantes",
             "sex": "Sexo",
             "birthplace": "Naturalidade",
-            "profession": "Profissao",
+            "profession": "Profissão",
             "email": "E-mail",
             "father_name": "Nome do pai",
-            "mother_name": "Nome da mae",
-            "spouse_name": "Nome do conjuge",
+            "mother_name": "Nome da mãe",
+            "spouse_name": "Nome do cônjuge",
             "marital_status": "Estado civil",
             "marriage_date": "Data do casamento",
             "is_active": "Cadastro ativo",
-            "inactive_reason": "Motivo da inativacao",
+            "inactive_reason": "Motivo da inativação",
         }
         widgets = {
             "photo": forms.FileInput(attrs={"accept": "image/*"}),
@@ -116,7 +116,7 @@ class MemberForm(forms.ModelForm):
 
         digits = _only_digits(cpf)
         if len(digits) != 11:
-            raise forms.ValidationError("Informe um CPF com 11 digitos.")
+            raise forms.ValidationError("Informe um CPF com 11 dígitos.")
 
         return digits
 
@@ -140,11 +140,11 @@ class AddressForm(forms.ModelForm):
         ]
         labels = {
             "postal_code": "CEP",
-            "country": "Pais",
+            "country": "País",
             "state": "Estado",
             "city": "Cidade",
             "street": "Logradouro",
-            "street_number": "Numero",
+            "street_number": "Número",
             "complement": "Complemento",
             "district": "Bairro",
         }
@@ -158,7 +158,7 @@ class AddressForm(forms.ModelForm):
 
         digits = _only_digits(postal_code)
         if len(digits) != 8:
-            raise forms.ValidationError("Informe um CEP com 8 digitos.")
+            raise forms.ValidationError("Informe um CEP com 8 dígitos.")
 
         return digits
 
@@ -195,7 +195,7 @@ class PhoneForm(forms.ModelForm):
         digits = _only_digits(number)
 
         if not 8 <= len(digits) <= 15:
-            raise forms.ValidationError("Informe um telefone com 8 a 15 digitos.")
+            raise forms.ValidationError("Informe um telefone com 8 a 15 dígitos.")
 
         return digits
 

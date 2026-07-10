@@ -38,7 +38,7 @@ def test_member_can_be_created_with_initial_fields():
     assert member.is_active is True
     assert member.include_in_birthday_list is True
     assert member.profession == "Professor"
-    assert member.get_registration_type_display() == "Lideranca"
+    assert member.get_registration_type_display() == "Liderança"
     assert member.get_classifications_display() == "Louvor, Pastoral"
     assert str(member) == member.name
 
@@ -169,7 +169,7 @@ def test_member_fields_expose_help_texts():
     assert Member._meta.get_field("name").help_text == "Nome completo do membro."
     assert (
         Member._meta.get_field("cpf").help_text
-        == "CPF do membro com 11 digitos, sem pontos ou traco."
+        == "CPF do membro com 11 dígitos, sem pontos ou traço."
     )
     assert (
         Member._meta.get_field("marriage_date").help_text
@@ -185,24 +185,24 @@ def test_member_fields_expose_help_texts():
     )
     assert (
         Member._meta.get_field("acclamation_date").help_text
-        == "Data da aclamacao do membro."
+        == "Data da aclamação do membro."
     )
     assert (
         Member._meta.get_field("inactive_reason").help_text
-        == "Motivo informado quando o cadastro do membro esta inativo."
+        == "Motivo informado quando o cadastro do membro está inativo."
     )
     assert (
         Member._meta.get_field("photo").help_text
-        == "Foto do membro para identificacao visual no sistema."
+        == "Foto do membro para identificação visual no sistema."
     )
-    assert Member._meta.get_field("profession").help_text == "Profissao do membro."
+    assert Member._meta.get_field("profession").help_text == "Profissão do membro."
     assert (
         Member._meta.get_field("registration_type").help_text
         == "Tipo de cadastro do membro na igreja."
     )
     assert (
         Member._meta.get_field("classifications").help_text
-        == "Classificacoes ministeriais vinculadas ao membro."
+        == "Classificações ministeriais vinculadas ao membro."
     )
     assert (
         Phone._meta.get_field("has_whatsapp").help_text

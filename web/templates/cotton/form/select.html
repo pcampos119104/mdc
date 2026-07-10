@@ -22,7 +22,7 @@
             name="{{ field.html_name }}"
             id="{{ field.id_for_label }}"
             class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
-            {# Replica required somente quando o formulario permite validacao HTML. #}
+            {# Replica required somente quando o formulário permite validação HTML. #}
             {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
             {# Liga o select aos textos de erro ou ajuda para acessibilidade. #}
             {% if field.errors %}
@@ -33,7 +33,7 @@
             {% endif %}
         >
             {% for value, label in field.field.choices %}
-                {# Mantem selecionada a opcao enviada ou salva no formulario. #}
+                {# Mantém selecionada a opção enviada ou salva no formulário. #}
                 <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
                     {{ label }}
                 </option>

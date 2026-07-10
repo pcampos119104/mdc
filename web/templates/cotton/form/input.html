@@ -37,11 +37,11 @@
                 placeholder="{{ field.field.widget.attrs.placeholder }}"
             {% endif %}
             class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
-            {# Replica required somente quando o formulario permite validacao HTML. #}
+            {# Replica required somente quando o formulário permite validação HTML. #}
             {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
             {# Repassa limite maximo configurado no campo Django. #}
             {% if field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
-            {# Repassa sugestao de autocomplete configurada no widget. #}
+            {# Repassa sugestão de autocomplete configurada no widget. #}
             {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
             {# Repassa restricao de tipos de arquivo configurada no widget. #}
             {% if field.field.widget.attrs.accept %}accept="{{ field.field.widget.attrs.accept }}"{% endif %}

@@ -14,10 +14,10 @@ class Phone(models.Model):
     KIND_WORK = "work"
     KIND_CONTACT = "contact"
     KIND_CHOICES = [
-        (KIND_MOBILE, "Mobile"),
-        (KIND_HOME, "Home"),
-        (KIND_WORK, "Work"),
-        (KIND_CONTACT, "Contact"),
+        (KIND_MOBILE, "Celular"),
+        (KIND_HOME, "Residencial"),
+        (KIND_WORK, "Comercial"),
+        (KIND_CONTACT, "Contato"),
     ]
 
     member = models.ForeignKey(
@@ -33,17 +33,17 @@ class Phone(models.Model):
     )
     number = models.CharField(
         max_length=15,
-        validators=[RegexValidator(r"^\d{8,15}$", "Informe somente digitos no telefone.")],
-        help_text="Numero de telefone com DDD e somente digitos.",
+        validators=[RegexValidator(r"^\d{8,15}$", "Informe somente dígitos no telefone.")],
+        help_text="Número de telefone com DDD e somente dígitos.",
     )
     contact_name = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Nome do contato relacionado a este telefone, quando aplicavel.",
+        help_text="Nome do contato relacionado a este telefone, quando aplicável.",
     )
     is_primary = models.BooleanField(
         default=False,
-        help_text="Indica se este e o telefone principal do membro.",
+        help_text="Indica se este é o telefone principal do membro.",
     )
     has_whatsapp = models.BooleanField(
         default=False,

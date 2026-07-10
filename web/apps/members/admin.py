@@ -47,7 +47,7 @@ class MemberAdmin(admin.ModelAdmin):
     )
     inlines = [AddressInline, PhoneInline]
 
-    @admin.display(description="Classificacao")
+    @admin.display(description="Classificação")
     def classifications_display(self, obj):
         """Return member classifications for the admin changelist."""
         return obj.get_classifications_display()

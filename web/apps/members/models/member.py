@@ -13,7 +13,7 @@ class Member(SoftDeleteModel):
     class RegistrationType(models.TextChoices):
         """Allowed registration type values for member records."""
 
-        LEADERSHIP = "lideranca", "Lideranca"
+        LEADERSHIP = "lideranca", "Liderança"
         PASTOR = "pastor", "Pastor"
         MEMBER = "membro", "Membro"
 
@@ -40,16 +40,16 @@ class Member(SoftDeleteModel):
 
         SINGLE = "single", "Solteiro(a)"
         MARRIED = "married", "Casado(a)"
-        STABLE_UNION = "stable_union", "Uniao estavel"
+        STABLE_UNION = "stable_union", "União estável"
         DIVORCED = "divorced", "Divorciado(a)"
-        WIDOWED = "widowed", "Viuvo(a)"
+        WIDOWED = "widowed", "Viúvo(a)"
 
     name = models.CharField(max_length=255, help_text="Nome completo do membro.")
     photo = models.ImageField(
         upload_to="members/%Y/%m/",
         blank=True,
         null=True,
-        help_text="Foto do membro para identificacao visual no sistema.",
+        help_text="Foto do membro para identificação visual no sistema.",
     )
     registration_type = models.CharField(
         max_length=20,
@@ -60,15 +60,15 @@ class Member(SoftDeleteModel):
     classifications = models.JSONField(
         blank=True,
         default=list,
-        help_text="Classificacoes ministeriais vinculadas ao membro.",
+        help_text="Classificações ministeriais vinculadas ao membro.",
     )
     cpf = models.CharField(
         max_length=11,
         blank=True,
         null=True,
         unique=True,
-        validators=[RegexValidator(r"^\d{11}$", "Informe um CPF com 11 digitos.")],
-        help_text="CPF do membro com 11 digitos, sem pontos ou traco.",
+        validators=[RegexValidator(r"^\d{11}$", "Informe um CPF com 11 dígitos.")],
+        help_text="CPF do membro com 11 dígitos, sem pontos ou traço.",
     )
     birth_date = models.DateField(
         blank=True,
@@ -83,7 +83,7 @@ class Member(SoftDeleteModel):
     acclamation_date = models.DateField(
         blank=True,
         null=True,
-        help_text="Data da aclamacao do membro.",
+        help_text="Data da aclamação do membro.",
     )
     include_in_birthday_list = models.BooleanField(
         default=True,
@@ -103,11 +103,11 @@ class Member(SoftDeleteModel):
     profession = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Profissao do membro.",
+        help_text="Profissão do membro.",
     )
     email = models.EmailField(
         blank=True,
-        help_text="Endereco de e-mail principal do membro.",
+        help_text="Endereço de e-mail principal do membro.",
     )
     father_name = models.CharField(
         max_length=255,
@@ -117,12 +117,12 @@ class Member(SoftDeleteModel):
     mother_name = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Nome da mae do membro.",
+        help_text="Nome da mãe do membro.",
     )
     spouse_name = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Nome do conjuge, quando houver.",
+        help_text="Nome do cônjuge, quando houver.",
     )
     marital_status = models.CharField(
         max_length=20,
@@ -137,11 +137,11 @@ class Member(SoftDeleteModel):
     )
     is_active = models.BooleanField(
         default=True,
-        help_text="Indica se o cadastro do membro esta ativo no sistema.",
+        help_text="Indica se o cadastro do membro está ativo no sistema.",
     )
     inactive_reason = models.TextField(
         blank=True,
-        help_text="Motivo informado quando o cadastro do membro esta inativo.",
+        help_text="Motivo informado quando o cadastro do membro está inativo.",
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -149,7 +149,7 @@ class Member(SoftDeleteModel):
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        help_text="Data e hora da ultima atualizacao do cadastro.",
+        help_text="Data e hora da última atualização do cadastro.",
     )
 
     class Meta:
@@ -194,5 +194,5 @@ class Member(SoftDeleteModel):
             value not in valid_classifications for value in classifications
         ):
             raise ValidationError(
-                {"classifications": "Selecione apenas classificacoes validas."}
+                {"classifications": "Selecione apenas classificações válidas."}
             )

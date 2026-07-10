@@ -11,7 +11,7 @@
         <div>
           <p class="text-sm font-medium text-blue-700">Cadastro de membro</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">{{ title }}</h1>
-          <p class="mt-2 text-sm text-slate-600">Preencha os dados cadastrais, familiares, endereco residencial e ate dois telefones vinculados ao membro.</p>
+          <p class="mt-2 text-sm text-slate-600">Preencha os dados cadastrais, familiares, endereço residencial e até dois telefones vinculados ao membro.</p>
         </div>
         <a href="{{ cancel_url }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Voltar</a>
       </div>
@@ -30,7 +30,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
             <h2 class="text-lg font-semibold text-slate-950">Dados do membro</h2>
-            <p class="mt-1 text-sm text-slate-500">Informacoes principais, classificacao, nascimento, filiacao e estado civil.</p>
+            <p class="mt-1 text-sm text-slate-500">Informações principais, classificação, nascimento, filiação e estado civil.</p>
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
@@ -95,7 +95,7 @@
             <c-form.checkbox :field="member_form.include_in_birthday_list" class="sm:col-span-2" />
 
             <div class="sm:col-span-2 pt-2">
-              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Familia e estado civil</h3>
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Família e estado civil</h3>
             </div>
 
             <c-form.input :field="member_form.father_name" />
@@ -105,7 +105,7 @@
             <c-form.input :field="member_form.marriage_date" />
 
             <div class="sm:col-span-2 pt-2">
-              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situacao do cadastro</h3>
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situação do cadastro</h3>
             </div>
 
             <c-form.checkbox :field="member_form.is_active" class="sm:col-span-2" />
@@ -132,14 +132,14 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
-            <h2 class="text-lg font-semibold text-slate-950">Endereco</h2>
-            <p class="mt-1 text-sm text-slate-500">Endereco residencial vinculado a este membro. O CEP e salvo como numero, sem traco.</p>
+            <h2 class="text-lg font-semibold text-slate-950">Endereço</h2>
+            <p class="mt-1 text-sm text-slate-500">Endereço residencial vinculado a este membro. O CEP é salvo como número, sem traço.</p>
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
             <c-form.input
               :field="address_form.postal_code"
-              help_text="Digite 8 numeros; mascaras como 01001-000 tambem sao aceitas."
+              help_text="Digite 8 números; máscaras como 01001-000 também são aceitas."
             />
             <c-form.input :field="address_form.country" />
             <c-form.input :field="address_form.state" />
@@ -154,7 +154,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
             <h2 class="text-lg font-semibold text-slate-950">Telefones</h2>
-            <p class="mt-1 text-sm text-slate-500">Cadastre ate dois telefones do membro e contatos relacionados. O segundo telefone pode ficar em branco.</p>
+            <p class="mt-1 text-sm text-slate-500">Cadastre até dois telefones do membro e contatos relacionados. O segundo telefone pode ficar em branco.</p>
           </div>
 
           <c-form.hidden :field="phone_formset.management_form.TOTAL_FORMS" />
@@ -178,7 +178,7 @@
                   <c-form.select :field="phone_form.kind" :show_help="False" />
                   <c-form.input
                     :field="phone_form.number"
-                    help_text="Digite DDD e numero; mascaras como (11) 99999-9999 tambem sao aceitas."
+                    help_text="Digite DDD e número; máscaras como (11) 99999-9999 também são aceitas."
                   />
                   <c-form.input :field="phone_form.contact_name" :show_help="False" />
                   <c-form.checkbox :field="phone_form.is_primary" :show_help="False" />
