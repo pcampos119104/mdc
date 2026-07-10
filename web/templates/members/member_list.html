@@ -20,7 +20,7 @@
         <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end">
           <div class="flex-1">
             <label for="member-search" class="mb-2 block text-sm font-medium text-slate-900">Buscar membros</label>
-            <input type="search" id="member-search" name="q" value="{{ query }}" placeholder="Nome, e-mail, CPF, telefone, cidade ou bairro" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+            <input type="search" id="member-search" name="q" value="{{ query }}" placeholder="Nome, profissao, e-mail, CPF, telefone, cidade ou bairro" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
             <p class="mt-2 text-xs text-slate-500">A busca considera CPF e telefones numericos, mesmo quando digitados com mascara.</p>
           </div>
           <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Buscar</button>
@@ -73,6 +73,7 @@
                       <p>Aniversariantes: {% if member.include_in_birthday_list %}Sim{% else %}Nao{% endif %}</p>
                       {% if member.sex %}<p>Sexo: {{ member.get_sex_display }}</p>{% endif %}
                       {% if member.birthplace %}<p>Naturalidade: {{ member.birthplace }}</p>{% endif %}
+                      {% if member.profession %}<p>Profissao: {{ member.profession }}</p>{% endif %}
                       {% if member.marital_status %}<p>Estado civil: {{ member.get_marital_status_display }}</p>{% endif %}
                       {% if member.spouse_name %}<p>Conjuge: {{ member.spouse_name }}</p>{% endif %}
                     </div>

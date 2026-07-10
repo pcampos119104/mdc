@@ -49,6 +49,7 @@ def _member_post_data(**overrides):
         "include_in_birthday_list": "on",
         "sex": Member.Sex.FEMALE,
         "birthplace": "Sao Paulo SP",
+        "profession": "Professora",
         "email": "maria@example.com",
         "father_name": "Jose Silva",
         "mother_name": "Ana Silva",
@@ -73,13 +74,11 @@ def _member_post_data(**overrides):
         "phones-0-number": "11999999999",
         "phones-0-contact_name": "",
         "phones-0-is_primary": "on",
-        "phones-0-receives_sms": "on",
         "phones-0-has_whatsapp": "on",
         "phones-1-kind": "",
         "phones-1-number": "",
         "phones-1-contact_name": "",
         "phones-1-is_primary": "",
-        "phones-1-receives_sms": "",
         "phones-1-has_whatsapp": "",
     }
     data.update(overrides)
@@ -134,6 +133,7 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
         name="Maria Silva",
         email="maria@example.com",
         cpf="12345678900",
+        profession="Medica",
     )
     other_member = Member.objects.create(name="Joao Souza", email="joao@example.com")
     Address.objects.create(member=matching_member, city="Sao Paulo", district="Centro")
@@ -144,7 +144,7 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
     )
     template_names = _record_rendered_templates(monkeypatch)
     request = _attach_request_state(
-        rf.get(reverse("members:list"), {"q": "(11) 9999"}),
+        rf.get(reverse("members:list"), {"q": "Medica"}),
         user,
     )
 
@@ -204,6 +204,7 @@ def test_member_detail_renders_member_registration(
         acclamation_date="2020-04-05",
         sex=Member.Sex.FEMALE,
         birthplace="Sao Paulo SP",
+        profession="Professora",
         email="maria@example.com",
         father_name="Jose Silva",
         mother_name="Ana Silva",
@@ -228,7 +229,6 @@ def test_member_detail_renders_member_registration(
         number="11999999999",
         contact_name="Maria",
         is_primary=True,
-        receives_sms=True,
         has_whatsapp=True,
     )
     template_names = _record_rendered_templates(monkeypatch)
@@ -245,6 +245,7 @@ def test_member_detail_renders_member_registration(
     assert "Maria Silva" in content
     assert "12345678900" in content
     assert "02/01/1990" in content
+    assert "Professora" in content
     assert "Sao Paulo" in content
     assert "Rua Central" in content
     assert "11999999999" in content
@@ -285,6 +286,7 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert member.baptism_date.isoformat() == "2001-02-03"
     assert member.acclamation_date.isoformat() == "2020-04-05"
     assert member.registration_type == Member.RegistrationType.MEMBER
+    assert member.profession == "Professora"
     assert member.classifications == [
         Member.Classification.CELEBRANDO,
         Member.Classification.WORSHIP,
@@ -331,7 +333,6 @@ def test_member_create_rejects_more_than_two_phones(client, django_user_model):
             "phones-2-number": "1144445555",
             "phones-2-contact_name": "",
             "phones-2-is_primary": "",
-            "phones-2-receives_sms": "",
             "phones-2-has_whatsapp": "",
         }
     )
@@ -395,6 +396,7 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     )
     data = _member_post_data(
         name="Maria Silva Atualizada",
+        profession="Psicologa",
         city="Santos",
         include_in_birthday_list="",
         **{
@@ -414,6 +416,7 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     address.refresh_from_db()
     phone.refresh_from_db()
     assert member.name == "Maria Silva Atualizada"
+    assert member.profession == "Psicologa"
     assert member.include_in_birthday_list is False
     assert address.city == "Santos"
     assert phone.kind == Phone.KIND_HOME

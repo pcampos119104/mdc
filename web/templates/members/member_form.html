@@ -78,6 +78,7 @@
             <c-form.input :field="member_form.birth_date" />
             <c-form.select :field="member_form.sex" />
             <c-form.input :field="member_form.birthplace" />
+            <c-form.input :field="member_form.profession" />
             <c-form.input :field="member_form.email" class="sm:col-span-2" />
 
             <div class="sm:col-span-2 pt-2">
@@ -181,7 +182,6 @@
                   />
                   <c-form.input :field="phone_form.contact_name" :show_help="False" />
                   <c-form.checkbox :field="phone_form.is_primary" :show_help="False" />
-                  <c-form.checkbox :field="phone_form.receives_sms" :show_help="False" />
                   <c-form.checkbox :field="phone_form.has_whatsapp" :show_help="False" />
                 </div>
               </div>

@@ -27,6 +27,7 @@ class MemberAdmin(admin.ModelAdmin):
         "name",
         "registration_type",
         "classifications_display",
+        "profession",
         "email",
         "baptism_date",
         "acclamation_date",
@@ -35,7 +36,15 @@ class MemberAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("registration_type", "include_in_birthday_list", "is_active")
-    search_fields = ("name", "email", "cpf", "father_name", "mother_name", "spouse_name")
+    search_fields = (
+        "name",
+        "email",
+        "cpf",
+        "profession",
+        "father_name",
+        "mother_name",
+        "spouse_name",
+    )
     inlines = [AddressInline, PhoneInline]
 
     @admin.display(description="Classificacao")
@@ -57,5 +66,5 @@ class PhoneAdmin(admin.ModelAdmin):
     """Admin interface for member phone numbers."""
 
     list_display = ("member", "kind", "number", "is_primary", "has_whatsapp")
-    list_filter = ("kind", "is_primary", "has_whatsapp", "receives_sms")
+    list_filter = ("kind", "is_primary", "has_whatsapp")
     search_fields = ("member__name", "number", "contact_name")

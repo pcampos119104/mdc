@@ -73,6 +73,10 @@
               <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.birthplace|default:"Nao informado" }}</dd>
             </div>
             <div>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Profissao</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.profession|default:"Nao informado" }}</dd>
+            </div>
+            <div>
               <dt class="mb-2 block text-sm font-medium text-slate-900">E-mail</dt>
               <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ member.email|default:"Nao informado" }}</dd>
             </div>
@@ -220,10 +224,6 @@
                   <div>
                     <dt class="mb-2 block text-sm font-medium text-slate-900">Telefone principal</dt>
                     <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{% if phone.is_primary %}Sim{% else %}Nao{% endif %}</dd>
-                  </div>
-                  <div>
-                    <dt class="mb-2 block text-sm font-medium text-slate-900">Recebe SMS</dt>
-                    <dd class="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-950">{% if phone.receives_sms %}Sim{% else %}Nao{% endif %}</dd>
                   </div>
                   <div>
                     <dt class="mb-2 block text-sm font-medium text-slate-900">Possui WhatsApp</dt>

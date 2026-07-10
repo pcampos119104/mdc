@@ -32,6 +32,7 @@ def member_list(request):
             Q(name__icontains=query)
             | Q(email__icontains=query)
             | Q(cpf__icontains=query)
+            | Q(profession__icontains=query)
             | Q(phones__number__icontains=query)
             | Q(phones__contact_name__icontains=query)
             | Q(address__city__icontains=query)

@@ -22,6 +22,7 @@ def test_member_can_be_created_with_initial_fields():
         acclamation_date=date(2020, 8, 9),
         sex=Member.Sex.MALE,
         birthplace="Sao Paulo SP",
+        profession="Professor",
         email="ailtontrindade84@gmail.com",
         father_name="Ailton Quaresma Trindade",
         mother_name="Josefa Pinheiro dos Santos",
@@ -36,6 +37,7 @@ def test_member_can_be_created_with_initial_fields():
     assert member.acclamation_date == date(2020, 8, 9)
     assert member.is_active is True
     assert member.include_in_birthday_list is True
+    assert member.profession == "Professor"
     assert member.get_registration_type_display() == "Lideranca"
     assert member.get_classifications_display() == "Louvor, Pastoral"
     assert str(member) == member.name
@@ -114,7 +116,6 @@ def test_member_phone_belongs_to_member():
         kind=Phone.KIND_MOBILE,
         number="11970478945",
         is_primary=True,
-        receives_sms=True,
         has_whatsapp=True,
     )
 
@@ -194,6 +195,7 @@ def test_member_fields_expose_help_texts():
         Member._meta.get_field("photo").help_text
         == "Foto do membro para identificacao visual no sistema."
     )
+    assert Member._meta.get_field("profession").help_text == "Profissao do membro."
     assert (
         Member._meta.get_field("registration_type").help_text
         == "Tipo de cadastro do membro na igreja."

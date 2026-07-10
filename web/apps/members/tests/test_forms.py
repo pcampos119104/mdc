@@ -24,6 +24,7 @@ def test_member_form_normalizes_masked_cpf():
             "cpf": "123.456.789-01",
             "baptism_date": "2001-02-03",
             "acclamation_date": "2020-04-05",
+            "profession": "Professora",
             "sex": Member.Sex.FEMALE,
             "marital_status": Member.MaritalStatus.SINGLE,
             "include_in_birthday_list": "on",
@@ -36,6 +37,7 @@ def test_member_form_normalizes_masked_cpf():
     assert form.cleaned_data["baptism_date"] == date(2001, 2, 3)
     assert form.cleaned_data["acclamation_date"] == date(2020, 4, 5)
     assert form.cleaned_data["include_in_birthday_list"] is True
+    assert form.cleaned_data["profession"] == "Professora"
     assert form.cleaned_data["registration_type"] == Member.RegistrationType.MEMBER
     assert form.cleaned_data["classifications"] == [
         Member.Classification.CELEBRANDO,
@@ -101,13 +103,11 @@ def test_phone_formset_accepts_one_phone_and_one_empty_slot():
             "phones-0-number": "(11) 99999-9999",
             "phones-0-contact_name": "",
             "phones-0-is_primary": "on",
-            "phones-0-receives_sms": "",
             "phones-0-has_whatsapp": "on",
             "phones-1-kind": "",
             "phones-1-number": "",
             "phones-1-contact_name": "",
             "phones-1-is_primary": "",
-            "phones-1-receives_sms": "",
             "phones-1-has_whatsapp": "",
         },
         instance=Member(name="Maria Silva"),

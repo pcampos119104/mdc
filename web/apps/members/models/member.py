@@ -100,6 +100,11 @@ class Member(SoftDeleteModel):
         blank=True,
         help_text="Cidade de nascimento ou naturalidade do membro.",
     )
+    profession = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Profissao do membro.",
+    )
     email = models.EmailField(
         blank=True,
         help_text="Endereco de e-mail principal do membro.",

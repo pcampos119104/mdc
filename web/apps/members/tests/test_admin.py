@@ -23,11 +23,13 @@ def test_member_admin_exposes_birthday_list_field():
     assert "person_type" not in member_admin.list_display
     assert "registration_type" in member_admin.list_display
     assert "classifications_display" in member_admin.list_display
+    assert "profession" in member_admin.list_display
     assert "baptism_date" in member_admin.list_display
     assert "acclamation_date" in member_admin.list_display
     assert "include_in_birthday_list" in member_admin.list_display
     assert "registration_type" in member_admin.list_filter
     assert "include_in_birthday_list" in member_admin.list_filter
+    assert "profession" in member_admin.search_fields
 
 
 @pytest.mark.django_db

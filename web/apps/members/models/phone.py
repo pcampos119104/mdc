@@ -45,10 +45,6 @@ class Phone(models.Model):
         default=False,
         help_text="Indica se este e o telefone principal do membro.",
     )
-    receives_sms = models.BooleanField(
-        default=False,
-        help_text="Indica se este telefone pode receber SMS.",
-    )
     has_whatsapp = models.BooleanField(
         default=False,
         help_text="Indica se este telefone possui WhatsApp.",

@@ -46,6 +46,7 @@ class MemberForm(forms.ModelForm):
             "include_in_birthday_list",
             "sex",
             "birthplace",
+            "profession",
             "email",
             "father_name",
             "mother_name",
@@ -66,6 +67,7 @@ class MemberForm(forms.ModelForm):
             "include_in_birthday_list": "Incluir na lista de aniversariantes",
             "sex": "Sexo",
             "birthplace": "Naturalidade",
+            "profession": "Profissao",
             "email": "E-mail",
             "father_name": "Nome do pai",
             "mother_name": "Nome da mae",
@@ -178,14 +180,12 @@ class PhoneForm(forms.ModelForm):
             "number",
             "contact_name",
             "is_primary",
-            "receives_sms",
             "has_whatsapp",
         ]
         labels = {
             "number": "Telefone",
             "contact_name": "Nome do contato",
             "is_primary": "Telefone principal",
-            "receives_sms": "Recebe SMS",
             "has_whatsapp": "Possui WhatsApp",
         }
 
