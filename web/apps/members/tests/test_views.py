@@ -59,7 +59,6 @@ def _member_post_data(**overrides):
         "is_active": "on",
         "inactive_reason": "",
         "postal_code": "01001-000",
-        "country": "Brasil",
         "state": "SP",
         "city": "Sao Paulo",
         "street": "Rua Central",
@@ -215,7 +214,6 @@ def test_member_detail_renders_member_registration(
     Address.objects.create(
         member=member,
         postal_code="01001000",
-        country="Brasil",
         state="SP",
         city="Sao Paulo",
         street="Rua Central",

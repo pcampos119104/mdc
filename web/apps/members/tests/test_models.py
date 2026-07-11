@@ -93,7 +93,6 @@ def test_member_address_belongs_to_member():
     address = Address.objects.create(
         member=member,
         postal_code="04166003",
-        country="Brazil",
         state="SP",
         city="Sao Paulo",
         street="Avenida Padre Arlindo Vieira",

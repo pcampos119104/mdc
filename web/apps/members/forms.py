@@ -130,7 +130,6 @@ class AddressForm(forms.ModelForm):
         model = Address
         fields = [
             "postal_code",
-            "country",
             "state",
             "city",
             "street",
@@ -140,7 +139,6 @@ class AddressForm(forms.ModelForm):
         ]
         labels = {
             "postal_code": "CEP",
-            "country": "País",
             "state": "Estado",
             "city": "Cidade",
             "street": "Logradouro",

@@ -21,11 +21,6 @@ class Address(models.Model):
         validators=[RegexValidator(r"^\d{8}$", "Informe um CEP com 8 dígitos.")],
         help_text="CEP do endereço residencial com 8 dígitos, sem traço.",
     )
-    country = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="País do endereço residencial.",
-    )
     state = models.CharField(
         max_length=2,
         blank=True,
