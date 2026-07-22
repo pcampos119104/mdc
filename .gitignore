@@ -1,4 +1,6 @@
 .env
+extras/
+session-*.md
 .venv/
 __pycache__/
 *.py[cod]
