@@ -13,6 +13,7 @@ urlpatterns = [
     path("", member_views.member_list, name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path("settings/birthdays/", include("apps.birthdays.urls")),
     path("members/", include("apps.members.urls")),
 ]
 

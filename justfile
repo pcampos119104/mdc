@@ -2,9 +2,9 @@
 default:
     just --list
 
-# Open the tmux stack(lazyvim, opencode, lazygit, and etc.)
-tmux:
-    tmuxp load tmuxp.yaml
+# Open the Herdr development workspace
+workspace:
+    herdr
 
 # Build the docker image
 build:

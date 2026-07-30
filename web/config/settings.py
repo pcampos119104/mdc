@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "django_cotton",
     "storages",
+    "apps.birthdays",
     "apps.members",
 ]
 

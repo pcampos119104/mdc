@@ -37,6 +37,30 @@ Initial monorepo structure for a church member management system.
    - Admin: http://localhost:8000/admin/
    - Accounts: http://localhost:8000/accounts/login/
 
+## Development workspace
+
+This project uses Herdr to organize the development workspace. Herdr must be
+installed on your system and available in `PATH`.
+
+There is no project-specific Herdr layout file. Start Herdr from the repository
+root and let it create or attach to the workspace normally:
+
+```bash
+just workspace
+```
+
+You can also run Herdr directly from the repository root:
+
+```bash
+herdr
+```
+
+Use Herdr to manage interactive workspace processes such as `nvim`, `opencode`,
+`lazydocker`, and `lazygit`. These programs must be installed and available in
+`PATH`.
+
+The `justfile` remains the project task runner for repeated project commands.
+
 ## Useful commands
 
 Build the local development stack:
@@ -61,6 +85,12 @@ Run tests:
 
 ```bash
 just test
+```
+
+Run the scheduled birthday report processor manually:
+
+```bash
+docker compose exec web uv run python manage.py process_scheduled_birthday
 ```
 
 Build the production image locally:
@@ -114,6 +144,43 @@ SERVER_EMAIL=MDC <noreply@your-domain.com>
 
 The sender domain must be verified in Resend before production emails can be
 delivered.
+
+## Weekly birthday reports
+
+Administrators and staff users can configure weekly birthday reports at:
+
+```text
+/settings/birthdays/
+```
+
+The feature stores a JPEG image generated from a Django HTML template and sends
+it as an e-mail attachment to the configured recipients. Report images are
+served through authenticated Django views, so private media buckets do not need
+to be public.
+
+Scheduling is intentionally external. Configure cron, Dokploy scheduled jobs, or
+another infrastructure scheduler to run:
+
+```bash
+python manage.py process_scheduled_birthday
+```
+
+The command is safe to run repeatedly. It only processes the current weekly
+period after the configured send day at 02:00 in Django's configured timezone,
+and the database prevents duplicate
+automatic reports for the same period. Manual generation from the settings page
+can create another report for the same period for testing or correction.
+
+Birthday images are rendered with Playwright Chromium. The Docker images install
+the Python `playwright` package, Chromium, and the required system libraries
+during build with:
+
+```dockerfile
+playwright install --with-deps chromium
+```
+
+The entrypoint remains responsible only for normal container startup and optional
+migrations; it does not run the birthday scheduler.
 
 ## Member photos and media storage
 

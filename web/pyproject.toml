@@ -10,6 +10,7 @@ dependencies = [
     "django-storages[s3]>=1.14,<2",
     "gunicorn>=23,<24",
     "Pillow>=11,<12",
+    "playwright>=1.49,<2",
     "psycopg[binary]>=3.2,<3.3",
     "sentry-sdk[django]>=2.19,<3",
     "whitenoise>=6.9,<7",

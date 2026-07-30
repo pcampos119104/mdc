@@ -1,0 +1,95 @@
+{% extends "base/_base.html" %}
+
+{% block title %}Histórico de aniversariantes | MDC{% endblock %}
+
+{% block body_class %}bg-slate-50{% endblock %}
+
+{% block content %}
+  <section class="px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-blue-700">Histórico</p>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Relatórios de aniversariantes</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600">Últimos cinco relatórios gerados, com download seguro e reenvio do e-mail.</p>
+        </div>
+        <a href="{% url 'birthdays:settings' %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Configurações</a>
+      </div>
+
+      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th scope="col" class="px-5 py-4 font-semibold">Período</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Geração</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Status</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Destinatários</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Erro</th>
+                <th scope="col" class="px-5 py-4 text-right font-semibold">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              {% for report in reports %}
+                <tr class="align-top hover:bg-slate-50/70">
+                  <td class="px-5 py-4">
+                    <p class="font-semibold text-slate-950">{{ report.period_start|date:"d/m/Y" }} a {{ report.period_end|date:"d/m/Y" }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ report.member_count }} aniversariante(s)</p>
+                    {% if report.email_subject %}<p class="mt-2 max-w-xs text-xs text-slate-500">{{ report.email_subject }}</p>{% endif %}
+                  </td>
+                  <td class="px-5 py-4">
+                    <p>{{ report.generated_at|date:"d/m/Y H:i" }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{% if report.is_automatic %}Automático{% else %}Manual{% endif %}</p>
+                  </td>
+                  <td class="px-5 py-4">
+                    {% if report.send_status == "sent" %}
+                      <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{{ report.get_send_status_display }}</span>
+                    {% elif report.send_status == "failed" %}
+                      <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">{{ report.get_send_status_display }}</span>
+                    {% elif report.send_status == "no_birthdays" %}
+                      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{{ report.get_send_status_display }}</span>
+                    {% else %}
+                      <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">{{ report.get_send_status_display }}</span>
+                    {% endif %}
+                    <p class="mt-2 text-xs text-slate-500">Envio: {{ report.sent_at|date:"d/m/Y H:i"|default:"Não enviado" }}</p>
+                  </td>
+                  <td class="px-5 py-4">
+                    <p class="max-w-xs break-words text-xs text-slate-600">{{ report.recipients|join:", "|default:"Sem destinatários" }}</p>
+                  </td>
+                  <td class="px-5 py-4">
+                    {% if report.error_message %}
+                      <p class="max-w-xs break-words rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-700">{{ report.error_message }}</p>
+                    {% else %}
+                      <p class="text-xs text-slate-400">Sem erro registrado</p>
+                    {% endif %}
+                  </td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex flex-col gap-2 sm:items-end">
+                      {% if report.image %}
+                        <a href="{% url 'birthdays:image' report.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Visualizar</a>
+                        <a href="{% url 'birthdays:image_download' report.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Baixar</a>
+                        <form method="post" action="{% url 'birthdays:resend' report.pk %}">
+                          {% csrf_token %}
+                          <button type="submit" class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Reenviar</button>
+                        </form>
+                      {% else %}
+                        <span class="text-xs text-slate-400">Sem imagem</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="px-5 py-12 text-center">
+                    <p class="text-base font-semibold text-slate-950">Nenhum relatório gerado</p>
+                    <p class="mt-2 text-sm text-slate-500">Configure a feature ou use Gerar agora para criar o primeiro relatório.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
