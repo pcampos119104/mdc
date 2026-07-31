@@ -20,6 +20,7 @@ def test_member_form_normalizes_masked_cpf():
             "classifications": [
                 Member.Classification.CELEBRANDO,
                 Member.Classification.WOMEN,
+                Member.Classification.VOLUNTEER,
             ],
             "cpf": "123.456.789-01",
             "baptism_date": "2001-02-03",
@@ -42,6 +43,7 @@ def test_member_form_normalizes_masked_cpf():
     assert form.cleaned_data["classifications"] == [
         Member.Classification.CELEBRANDO,
         Member.Classification.WOMEN,
+        Member.Classification.VOLUNTEER,
     ]
 
 

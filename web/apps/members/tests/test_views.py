@@ -41,6 +41,7 @@ def _member_post_data(**overrides):
         "classifications": [
             Member.Classification.CELEBRANDO,
             Member.Classification.WORSHIP,
+            Member.Classification.VOLUNTEER,
         ],
         "cpf": "123.456.789-00",
         "birth_date": "1990-01-02",
@@ -267,6 +268,7 @@ def test_member_create_page_renders_for_authenticated_user(
     assert template_names == ["members/member_form.html"]
     assert b"Incluir na lista de aniversariantes" in response.content
     assert b'enctype="multipart/form-data"' in response.content
+    assert "Voluntário" in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -288,6 +290,7 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert member.classifications == [
         Member.Classification.CELEBRANDO,
         Member.Classification.WORSHIP,
+        Member.Classification.VOLUNTEER,
     ]
     assert member.include_in_birthday_list is True
     assert member.address.city == "Sao Paulo"

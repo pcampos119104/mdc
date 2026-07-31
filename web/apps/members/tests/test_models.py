@@ -15,7 +15,11 @@ def test_member_can_be_created_with_initial_fields():
     member = Member.objects.create(
         name="Ailton Quaresma Trindade Junior",
         registration_type=Member.RegistrationType.LEADERSHIP,
-        classifications=[Member.Classification.WORSHIP, Member.Classification.PASTORAL],
+        classifications=[
+            Member.Classification.WORSHIP,
+            Member.Classification.PASTORAL,
+            Member.Classification.VOLUNTEER,
+        ],
         cpf="22406088898",
         birth_date=date(1982, 3, 29),
         baptism_date=date(1999, 6, 12),
@@ -39,7 +43,7 @@ def test_member_can_be_created_with_initial_fields():
     assert member.include_in_birthday_list is True
     assert member.profession == "Professor"
     assert member.get_registration_type_display() == "Liderança"
-    assert member.get_classifications_display() == "Louvor, Pastoral"
+    assert member.get_classifications_display() == "Louvor, Pastoral, Voluntário"
     assert str(member) == member.name
 
 

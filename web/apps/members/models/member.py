@@ -28,6 +28,7 @@ class Member(SoftDeleteModel):
         WOMEN = "mulheres", "Mulheres"
         WORSHIP = "louvor", "Louvor"
         PASTORAL = "pastoral", "Pastoral"
+        VOLUNTEER = "voluntario", "Voluntário"
 
     class Sex(models.TextChoices):
         """Allowed biological sex values for member records."""
