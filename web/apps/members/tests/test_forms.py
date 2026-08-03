@@ -4,8 +4,8 @@ from datetime import date
 
 import pytest
 
-from apps.members.forms import AddressForm, MemberForm, PhoneForm, PhoneFormSet
-from apps.members.models import Member, Phone
+from apps.members.forms import AddressForm, MemberForm
+from apps.members.models import Member
 
 
 pytestmark = pytest.mark.django_db
@@ -26,6 +26,7 @@ def test_member_form_normalizes_masked_cpf():
             "baptism_date": "2001-02-03",
             "acclamation_date": "2020-04-05",
             "profession": "Professora",
+            "phone": "(11) 99999-9999",
             "sex": Member.Sex.FEMALE,
             "marital_status": Member.MaritalStatus.SINGLE,
             "include_in_birthday_list": "on",
@@ -39,6 +40,7 @@ def test_member_form_normalizes_masked_cpf():
     assert form.cleaned_data["acclamation_date"] == date(2020, 4, 5)
     assert form.cleaned_data["include_in_birthday_list"] is True
     assert form.cleaned_data["profession"] == "Professora"
+    assert form.cleaned_data["phone"] == "11999999999"
     assert form.cleaned_data["registration_type"] == Member.RegistrationType.MEMBER
     assert form.cleaned_data["classifications"] == [
         Member.Classification.CELEBRANDO,
@@ -79,65 +81,15 @@ def test_address_form_normalizes_postal_code_and_state():
     assert form.cleaned_data["state"] == "SP"
 
 
-def test_phone_form_normalizes_masked_number():
-    """Phone form should accept masked numbers and store only digits."""
-    form = PhoneForm(
+def test_member_form_rejects_invalid_phone():
+    """Member form should reject malformed phone values."""
+    form = MemberForm(
         data={
-            "kind": Phone.KIND_MOBILE,
-            "number": "(11) 99999-9999",
-            "is_primary": "on",
+            "name": "Maria Silva",
+            "registration_type": Member.RegistrationType.MEMBER,
+            "phone": "abc",
         }
     )
 
-    assert form.is_valid(), form.errors
-    assert form.cleaned_data["number"] == "11999999999"
-
-
-def test_phone_formset_accepts_one_phone_and_one_empty_slot():
-    """Phone formset should allow the second fixed phone slot to stay empty."""
-    formset = PhoneFormSet(
-        data={
-            "phones-TOTAL_FORMS": "2",
-            "phones-INITIAL_FORMS": "0",
-            "phones-MIN_NUM_FORMS": "0",
-            "phones-MAX_NUM_FORMS": "2",
-            "phones-0-kind": Phone.KIND_MOBILE,
-            "phones-0-number": "(11) 99999-9999",
-            "phones-0-contact_name": "",
-            "phones-0-is_primary": "on",
-            "phones-0-has_whatsapp": "on",
-            "phones-1-kind": "",
-            "phones-1-number": "",
-            "phones-1-contact_name": "",
-            "phones-1-is_primary": "",
-            "phones-1-has_whatsapp": "",
-        },
-        instance=Member(name="Maria Silva"),
-    )
-
-    assert formset.is_valid(), formset.errors
-    assert len(formset.forms) == 2
-    assert formset.forms[0].cleaned_data["number"] == "11999999999"
-    assert formset.forms[1].cleaned_data == {}
-
-
-def test_phone_formset_rejects_more_than_two_phones():
-    """Phone formset should not accept more than two submitted phone records."""
-    formset = PhoneFormSet(
-        data={
-            "phones-TOTAL_FORMS": "3",
-            "phones-INITIAL_FORMS": "0",
-            "phones-MIN_NUM_FORMS": "0",
-            "phones-MAX_NUM_FORMS": "2",
-            "phones-0-kind": Phone.KIND_MOBILE,
-            "phones-0-number": "11999999999",
-            "phones-1-kind": Phone.KIND_HOME,
-            "phones-1-number": "1133334444",
-            "phones-2-kind": Phone.KIND_WORK,
-            "phones-2-number": "1144445555",
-        },
-        instance=Member(name="Maria Silva"),
-    )
-
-    assert not formset.is_valid()
-    assert formset.non_form_errors()
+    assert not form.is_valid()
+    assert "phone" in form.errors

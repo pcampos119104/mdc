@@ -110,6 +110,14 @@ class Member(SoftDeleteModel):
         blank=True,
         help_text="Endereço de e-mail principal do membro.",
     )
+    phone = models.CharField(
+        max_length=15,
+        blank=True,
+        validators=[
+            RegexValidator(r"^\d{8,15}$", "Informe somente dígitos no telefone.")
+        ],
+        help_text="Telefone do membro com DDD e somente dígitos.",
+    )
     father_name = models.CharField(
         max_length=255,
         blank=True,

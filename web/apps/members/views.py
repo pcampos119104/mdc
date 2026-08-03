@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
 
-from .forms import AddressForm, MemberForm, PhoneFormSet
+from .forms import AddressForm, MemberForm
 from .models import Address, Member
 
 
@@ -25,7 +25,7 @@ def member_list(request):
     """Display the list of members, optionally filtered by search query."""
     query = request.GET.get("q", "").strip()
     query_digits = _only_digits(query)
-    members = Member.objects.select_related("address").prefetch_related("phones")
+    members = Member.objects.select_related("address")
 
     if query:
         search_filter = (
@@ -33,15 +33,14 @@ def member_list(request):
             | Q(email__icontains=query)
             | Q(cpf__icontains=query)
             | Q(profession__icontains=query)
-            | Q(phones__number__icontains=query)
-            | Q(phones__contact_name__icontains=query)
+            | Q(phone__icontains=query)
             | Q(address__city__icontains=query)
             | Q(address__district__icontains=query)
         )
 
         if query_digits:
             search_filter |= Q(cpf__icontains=query_digits) | Q(
-                phones__number__icontains=query_digits
+                phone__icontains=query_digits
             )
 
         members = members.filter(search_filter).distinct()
@@ -68,7 +67,7 @@ def _get_member_address(member):
 def member_detail(request, pk):
     """Display a member registration with all related information."""
     member = get_object_or_404(
-        Member.objects.select_related("address").prefetch_related("phones"),
+        Member.objects.select_related("address"),
         pk=pk,
     )
     return render(
@@ -77,17 +76,15 @@ def member_detail(request, pk):
         {
             "member": member,
             "address": _get_member_address(member),
-            "phones": member.phones.all(),
         },
     )
 
 
-def _member_form_context(member_form, address_form, phone_formset, *, title, submit_label):
+def _member_form_context(member_form, address_form, *, title, submit_label):
     """Build context data shared by member create and update views."""
     return {
         "member_form": member_form,
         "address_form": address_form,
-        "phone_formset": phone_formset,
         "title": title,
         "submit_label": submit_label,
         "cancel_url": reverse("members:list"),
@@ -95,36 +92,31 @@ def _member_form_context(member_form, address_form, phone_formset, *, title, sub
 
 
 class MemberCreateView(LoginRequiredMixin, View):
-    """Create a new church member with address and phone numbers."""
+    """Create a new church member with address and phone."""
 
     def get(self, request):
         """Display the member creation form."""
         context = _member_form_context(
             MemberForm(),
             AddressForm(),
-            PhoneFormSet(),
             title="Novo membro",
             submit_label="Salvar membro",
         )
         return render(request, "members/member_form.html", context)
 
     def post(self, request):
-        """Validate and create a member with address and phone numbers."""
+        """Validate and create a member with address and phone."""
         member = Member()
         member_form = MemberForm(request.POST, request.FILES, instance=member)
         address_form = AddressForm(request.POST)
-        phone_formset = PhoneFormSet(request.POST, instance=member)
 
-        if member_form.is_valid() and address_form.is_valid() and phone_formset.is_valid():
+        if member_form.is_valid() and address_form.is_valid():
             with transaction.atomic():
                 member = member_form.save()
 
                 address = address_form.save(commit=False)
                 address.member = member
                 address.save()
-
-                phone_formset.instance = member
-                phone_formset.save()
 
             messages.success(request, "Membro criado com sucesso.")
             return redirect("members:list")
@@ -132,7 +124,6 @@ class MemberCreateView(LoginRequiredMixin, View):
         context = _member_form_context(
             member_form,
             address_form,
-            phone_formset,
             title="Novo membro",
             submit_label="Salvar membro",
         )
@@ -140,34 +131,32 @@ class MemberCreateView(LoginRequiredMixin, View):
 
 
 class MemberUpdateView(LoginRequiredMixin, View):
-    """Update a church member with address and phone numbers."""
+    """Update a church member with address and phone."""
 
     def get(self, request, pk):
         """Display the member update form."""
         member = get_object_or_404(
-            Member.objects.select_related("address").prefetch_related("phones"),
+            Member.objects.select_related("address"),
             pk=pk,
         )
         context = _member_form_context(
             MemberForm(instance=member),
             AddressForm(instance=_get_member_address(member)),
-            PhoneFormSet(instance=member),
             title=f"Editar {member.name}",
             submit_label="Atualizar membro",
         )
         return render(request, "members/member_form.html", context)
 
     def post(self, request, pk):
-        """Validate and update a member with address and phone numbers."""
+        """Validate and update a member with address and phone."""
         member = get_object_or_404(Member, pk=pk)
         member_form = MemberForm(request.POST, request.FILES, instance=member)
         address_form = AddressForm(
             request.POST,
             instance=_get_member_address(member),
         )
-        phone_formset = PhoneFormSet(request.POST, instance=member)
 
-        if member_form.is_valid() and address_form.is_valid() and phone_formset.is_valid():
+        if member_form.is_valid() and address_form.is_valid():
             with transaction.atomic():
                 member = member_form.save()
 
@@ -175,15 +164,12 @@ class MemberUpdateView(LoginRequiredMixin, View):
                 address.member = member
                 address.save()
 
-                phone_formset.save()
-
             messages.success(request, "Membro atualizado com sucesso.")
             return redirect("members:list")
 
         context = _member_form_context(
             member_form,
             address_form,
-            phone_formset,
             title=f"Editar {member.name}",
             submit_label="Atualizar membro",
         )
@@ -196,7 +182,7 @@ class MemberRemoveView(LoginRequiredMixin, View):
     def get(self, request, pk):
         """Display the member removal confirmation page."""
         member = get_object_or_404(
-            Member.objects.select_related("address").prefetch_related("phones"),
+            Member.objects.select_related("address"),
             pk=pk,
         )
         return render(request, "members/member_confirm_remove.html", {"member": member})

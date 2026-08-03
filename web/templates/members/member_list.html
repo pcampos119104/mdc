@@ -11,7 +11,7 @@
         <div>
           <p class="text-sm font-medium text-blue-700">Gestão de membros</p>
           <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Membros</h1>
-          <p class="mt-2 max-w-2xl text-sm text-slate-600">Consulte dados cadastrais, familiares, endereço residencial e telefones vinculados a cada membro.</p>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600">Consulte dados cadastrais, familiares, endereço residencial e telefone de cada membro.</p>
         </div>
         <a href="{% url 'members:create' %}" class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Novo membro</a>
       </div>
@@ -21,7 +21,7 @@
           <div class="flex-1">
             <label for="member-search" class="mb-2 block text-sm font-medium text-slate-900">Buscar membros</label>
             <input type="search" id="member-search" name="q" value="{{ query }}" placeholder="Nome, profissão, e-mail, CPF, telefone, cidade ou bairro" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
-            <p class="mt-2 text-xs text-slate-500">A busca considera CPF e telefones numéricos, mesmo quando digitados com máscara.</p>
+            <p class="mt-2 text-xs text-slate-500">A busca considera CPF e telefone numéricos, mesmo quando digitados com máscara.</p>
           </div>
           <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Buscar</button>
           {% if query %}
@@ -81,15 +81,11 @@
                   <td class="px-5 py-4">
                     {% if member.email %}<p class="text-slate-900">{{ member.email }}</p>{% endif %}
                     <div class="mt-2 space-y-1">
-                      {% for phone in member.phones.all %}
-                        <p>
-                          <span class="font-medium text-slate-900">{{ phone.number }}</span>
-                          {% if phone.is_primary %}<span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Principal</span>{% endif %}
-                          {% if phone.has_whatsapp %}<span class="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">WhatsApp</span>{% endif %}
-                        </p>
-                      {% empty %}
+                      {% if member.phone %}
+                        <p><span class="font-medium text-slate-900">{{ member.phone }}</span></p>
+                      {% else %}
                         <p class="text-slate-400">Sem telefone</p>
-                      {% endfor %}
+                      {% endif %}
                     </div>
                   </td>
                   <td class="px-5 py-4">

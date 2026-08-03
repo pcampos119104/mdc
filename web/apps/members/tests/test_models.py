@@ -6,7 +6,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 
-from apps.members.models import Address, Member, Phone
+from apps.members.models import Address, Member
 
 
 @pytest.mark.django_db
@@ -28,6 +28,7 @@ def test_member_can_be_created_with_initial_fields():
         birthplace="Sao Paulo SP",
         profession="Professor",
         email="ailtontrindade84@gmail.com",
+        phone="11970478945",
         father_name="Ailton Quaresma Trindade",
         mother_name="Josefa Pinheiro dos Santos",
         spouse_name="Walquiria Batista dos Santos",
@@ -42,6 +43,7 @@ def test_member_can_be_created_with_initial_fields():
     assert member.is_active is True
     assert member.include_in_birthday_list is True
     assert member.profession == "Professor"
+    assert member.phone == "11970478945"
     assert member.get_registration_type_display() == "Liderança"
     assert member.get_classifications_display() == "Louvor, Pastoral, Voluntário"
     assert str(member) == member.name
@@ -110,34 +112,17 @@ def test_member_address_belongs_to_member():
     assert str(address) == f"Address for {member.name}"
 
 
-@pytest.mark.django_db
-def test_member_phone_belongs_to_member():
-    """Phone numbers should be linked to a member."""
-    member = Member.objects.create(name="Ailton Quaresma Trindade Junior")
-    phone = Phone.objects.create(
-        member=member,
-        kind=Phone.KIND_MOBILE,
-        number="11970478945",
-        is_primary=True,
-        has_whatsapp=True,
-    )
-
-    assert phone.member == member
-    phone.full_clean()
-    assert str(phone) == f"{member.name} - 11970478945"
-
-
 def test_contact_data_rejects_invalid_numeric_values():
-    """Address and phone numeric fields should reject malformed values."""
+    """Address and member phone numeric fields should reject malformed values."""
     member = Member(name="Maria Silva")
     address = Address(member=member, postal_code="01001-000", state="Sao Paulo")
-    phone = Phone(member=member, kind=Phone.KIND_MOBILE, number="abc")
+    member_with_invalid_phone = Member(name="Joao Silva", phone="abc")
 
     with pytest.raises(ValidationError):
         address.full_clean()
 
     with pytest.raises(ValidationError):
-        phone.full_clean()
+        member_with_invalid_phone.full_clean()
 
 
 @pytest.mark.django_db
@@ -200,14 +185,14 @@ def test_member_fields_expose_help_texts():
     )
     assert Member._meta.get_field("profession").help_text == "Profissão do membro."
     assert (
+        Member._meta.get_field("phone").help_text
+        == "Telefone do membro com DDD e somente dígitos."
+    )
+    assert (
         Member._meta.get_field("registration_type").help_text
         == "Tipo de cadastro do membro na igreja."
     )
     assert (
         Member._meta.get_field("classifications").help_text
         == "Classificações ministeriais vinculadas ao membro."
-    )
-    assert (
-        Phone._meta.get_field("has_whatsapp").help_text
-        == "Indica se este telefone possui WhatsApp."
     )

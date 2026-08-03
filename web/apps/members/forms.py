@@ -3,17 +3,8 @@
 import re
 
 from django import forms
-from django.forms import inlineformset_factory
 
-from .models import Address, Member, Phone
-
-
-PHONE_KIND_CHOICES = [
-    (Phone.KIND_MOBILE, "Celular"),
-    (Phone.KIND_HOME, "Residencial"),
-    (Phone.KIND_WORK, "Comercial"),
-    (Phone.KIND_CONTACT, "Contato"),
-]
+from .models import Address, Member
 
 
 def _only_digits(value):
@@ -25,6 +16,7 @@ class MemberForm(forms.ModelForm):
     """Validate the main registration data for a member."""
 
     cpf = forms.CharField(required=False, max_length=14, label="CPF")
+    phone = forms.CharField(required=False, max_length=20, label="Telefone")
     classifications = forms.MultipleChoiceField(
         choices=Member.Classification.choices,
         required=False,
@@ -48,6 +40,7 @@ class MemberForm(forms.ModelForm):
             "birthplace",
             "profession",
             "email",
+            "phone",
             "father_name",
             "mother_name",
             "spouse_name",
@@ -69,6 +62,7 @@ class MemberForm(forms.ModelForm):
             "birthplace": "Naturalidade",
             "profession": "Profissão",
             "email": "E-mail",
+            "phone": "Telefone",
             "father_name": "Nome do pai",
             "mother_name": "Nome da mãe",
             "spouse_name": "Nome do cônjuge",
@@ -120,6 +114,19 @@ class MemberForm(forms.ModelForm):
 
         return digits
 
+    def clean_phone(self):
+        """Store phone numbers with digits only while accepting common masks."""
+        phone = self.cleaned_data.get("phone")
+
+        if not phone:
+            return ""
+
+        digits = _only_digits(phone)
+        if not 8 <= len(digits) <= 15:
+            raise forms.ValidationError("Informe um telefone com 8 a 15 dígitos.")
+
+        return digits
+
 
 class AddressForm(forms.ModelForm):
     """Validate the residential address for a member."""
@@ -163,47 +170,3 @@ class AddressForm(forms.ModelForm):
     def clean_state(self):
         """Store Brazilian state abbreviation in uppercase."""
         return (self.cleaned_data.get("state") or "").upper()
-
-
-class PhoneForm(forms.ModelForm):
-    """Validate a phone number attached to a member."""
-
-    kind = forms.ChoiceField(choices=PHONE_KIND_CHOICES, label="Tipo")
-    number = forms.CharField(max_length=20, label="Telefone")
-
-    class Meta:
-        model = Phone
-        fields = [
-            "kind",
-            "number",
-            "contact_name",
-            "is_primary",
-            "has_whatsapp",
-        ]
-        labels = {
-            "number": "Telefone",
-            "contact_name": "Nome do contato",
-            "is_primary": "Telefone principal",
-            "has_whatsapp": "Possui WhatsApp",
-        }
-
-    def clean_number(self):
-        """Store phone numbers with digits only while accepting common masks."""
-        number = self.cleaned_data.get("number")
-        digits = _only_digits(number)
-
-        if not 8 <= len(digits) <= 15:
-            raise forms.ValidationError("Informe um telefone com 8 a 15 dígitos.")
-
-        return digits
-
-
-PhoneFormSet = inlineformset_factory(
-    Member,
-    Phone,
-    form=PhoneForm,
-    extra=2,
-    max_num=2,
-    validate_max=True,
-    can_delete=False,
-)

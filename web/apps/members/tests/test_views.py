@@ -8,7 +8,7 @@ from django.shortcuts import render as django_render
 from django.urls import reverse
 
 from apps.members import views as member_views
-from apps.members.models import Address, Member, Phone
+from apps.members.models import Address, Member
 
 
 def _image_upload(name="member.gif"):
@@ -34,7 +34,7 @@ def _create_user(django_user_model):
 
 
 def _member_post_data(**overrides):
-    """Build member POST data, including address and phone formset fields."""
+    """Build member POST data, including address and phone fields."""
     data = {
         "name": "Maria Silva",
         "registration_type": Member.RegistrationType.MEMBER,
@@ -52,6 +52,7 @@ def _member_post_data(**overrides):
         "birthplace": "Sao Paulo SP",
         "profession": "Professora",
         "email": "maria@example.com",
+        "phone": "11999999999",
         "father_name": "Jose Silva",
         "mother_name": "Ana Silva",
         "spouse_name": "",
@@ -66,20 +67,6 @@ def _member_post_data(**overrides):
         "street_number": "123",
         "complement": "Casa",
         "district": "Centro",
-        "phones-TOTAL_FORMS": "2",
-        "phones-INITIAL_FORMS": "0",
-        "phones-MIN_NUM_FORMS": "0",
-        "phones-MAX_NUM_FORMS": "2",
-        "phones-0-kind": Phone.KIND_MOBILE,
-        "phones-0-number": "11999999999",
-        "phones-0-contact_name": "",
-        "phones-0-is_primary": "on",
-        "phones-0-has_whatsapp": "on",
-        "phones-1-kind": "",
-        "phones-1-number": "",
-        "phones-1-contact_name": "",
-        "phones-1-is_primary": "",
-        "phones-1-has_whatsapp": "",
     }
     data.update(overrides)
     return data
@@ -134,14 +121,10 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
         email="maria@example.com",
         cpf="12345678900",
         profession="Medica",
+        phone="11999999999",
     )
     other_member = Member.objects.create(name="Joao Souza", email="joao@example.com")
     Address.objects.create(member=matching_member, city="Sao Paulo", district="Centro")
-    Phone.objects.create(
-        member=matching_member,
-        kind=Phone.KIND_MOBILE,
-        number="11999999999",
-    )
     template_names = _record_rendered_templates(monkeypatch)
     request = _attach_request_state(
         rf.get(reverse("members:list"), {"q": "Medica"}),
@@ -206,6 +189,7 @@ def test_member_detail_renders_member_registration(
         birthplace="Sao Paulo SP",
         profession="Professora",
         email="maria@example.com",
+        phone="11999999999",
         father_name="Jose Silva",
         mother_name="Ana Silva",
         spouse_name="Joao Silva",
@@ -221,14 +205,6 @@ def test_member_detail_renders_member_registration(
         street_number="123",
         complement="Casa",
         district="Centro",
-    )
-    Phone.objects.create(
-        member=member,
-        kind=Phone.KIND_MOBILE,
-        number="11999999999",
-        contact_name="Maria",
-        is_primary=True,
-        has_whatsapp=True,
     )
     template_names = _record_rendered_templates(monkeypatch)
     request = _attach_request_state(
@@ -248,7 +224,6 @@ def test_member_detail_renders_member_registration(
     assert "Sao Paulo" in content
     assert "Rua Central" in content
     assert "11999999999" in content
-    assert "WhatsApp" in content
 
 
 @pytest.mark.django_db
@@ -273,7 +248,7 @@ def test_member_create_page_renders_for_authenticated_user(
 
 @pytest.mark.django_db
 def test_member_create_saves_member_address_and_phone(client, django_user_model):
-    """Valid member submission should create member, address and phone records."""
+    """Valid member submission should create member and address records."""
     user = _create_user(django_user_model)
     client.force_login(user)
 
@@ -287,6 +262,7 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert member.acclamation_date.isoformat() == "2020-04-05"
     assert member.registration_type == Member.RegistrationType.MEMBER
     assert member.profession == "Professora"
+    assert member.phone == "11999999999"
     assert member.classifications == [
         Member.Classification.CELEBRANDO,
         Member.Classification.WORSHIP,
@@ -295,10 +271,6 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert member.include_in_birthday_list is True
     assert member.address.city == "Sao Paulo"
     assert member.address.postal_code == "01001000"
-    phone = member.phones.get()
-    assert phone.number == "11999999999"
-    assert phone.is_primary is True
-    assert phone.has_whatsapp is True
 
 
 @pytest.mark.django_db
@@ -320,28 +292,6 @@ def test_member_create_saves_uploaded_photo(
     member = Member.objects.get(name="Maria Silva")
     assert member.photo.name.startswith("members/")
     assert (tmp_path / member.photo.name).exists()
-
-
-@pytest.mark.django_db
-def test_member_create_rejects_more_than_two_phones(client, django_user_model):
-    """Member creation should reject submissions with more than two phones."""
-    user = _create_user(django_user_model)
-    client.force_login(user)
-    data = _member_post_data(
-        **{
-            "phones-TOTAL_FORMS": "3",
-            "phones-2-kind": Phone.KIND_WORK,
-            "phones-2-number": "1144445555",
-            "phones-2-contact_name": "",
-            "phones-2-is_primary": "",
-            "phones-2-has_whatsapp": "",
-        }
-    )
-
-    response = client.post(reverse("members:create"), data)
-
-    assert response.status_code == 200
-    assert Member.objects.count() == 0
 
 
 @pytest.mark.django_db
@@ -388,25 +338,14 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     """Valid member update should persist member, address and phone changes."""
     user = _create_user(django_user_model)
     client.force_login(user)
-    member = Member.objects.create(name="Maria Silva")
+    member = Member.objects.create(name="Maria Silva", phone="11999999999")
     address = Address.objects.create(member=member, city="Sao Paulo")
-    phone = Phone.objects.create(
-        member=member,
-        kind=Phone.KIND_MOBILE,
-        number="11999999999",
-    )
     data = _member_post_data(
         name="Maria Silva Atualizada",
         profession="Psicologa",
         city="Santos",
+        phone="1133334444",
         include_in_birthday_list="",
-        **{
-            "phones-INITIAL_FORMS": "1",
-            "phones-0-id": str(phone.pk),
-            "phones-0-kind": Phone.KIND_HOME,
-            "phones-0-number": "1133334444",
-            "phones-0-has_whatsapp": "",
-        },
     )
 
     response = client.post(reverse("members:update", args=[member.pk]), data)
@@ -415,14 +354,11 @@ def test_member_update_saves_member_address_and_phone(client, django_user_model)
     assert response.headers["Location"] == reverse("members:list")
     member.refresh_from_db()
     address.refresh_from_db()
-    phone.refresh_from_db()
     assert member.name == "Maria Silva Atualizada"
     assert member.profession == "Psicologa"
+    assert member.phone == "1133334444"
     assert member.include_in_birthday_list is False
     assert address.city == "Santos"
-    assert phone.kind == Phone.KIND_HOME
-    assert phone.number == "1133334444"
-    assert phone.has_whatsapp is False
 
 
 @pytest.mark.django_db
@@ -519,20 +455,15 @@ def test_member_remove_page_renders_for_authenticated_user(
 
 
 @pytest.mark.django_db
-def test_member_remove_soft_deletes_member_and_keeps_contact_records(
+def test_member_remove_soft_deletes_member_and_keeps_address(
     client,
     django_user_model,
 ):
-    """Confirmed removal should soft delete the member and keep contact records."""
+    """Confirmed removal should soft delete the member and keep its address."""
     user = _create_user(django_user_model)
     client.force_login(user)
-    member = Member.objects.create(name="Maria Silva")
+    member = Member.objects.create(name="Maria Silva", phone="11999999999")
     address = Address.objects.create(member=member, city="Sao Paulo")
-    phone = Phone.objects.create(
-        member=member,
-        kind=Phone.KIND_MOBILE,
-        number="11999999999",
-    )
 
     response = client.post(reverse("members:remove", args=[member.pk]))
 
@@ -542,5 +473,5 @@ def test_member_remove_soft_deletes_member_and_keeps_contact_records(
 
     deleted_member = Member.all_objects.get(pk=member.pk)
     assert deleted_member.deleted_at is not None
+    assert deleted_member.phone == "11999999999"
     assert Address.objects.filter(pk=address.pk).exists()
-    assert Phone.objects.filter(pk=phone.pk).exists()
