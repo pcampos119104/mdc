@@ -15,8 +15,35 @@ def _only_digits(value):
 class MemberForm(forms.ModelForm):
     """Validate the main registration data for a member."""
 
-    cpf = forms.CharField(required=False, max_length=14, label="CPF")
-    phone = forms.CharField(required=False, max_length=20, label="Telefone")
+    cpf = forms.CharField(
+        required=False,
+        max_length=14,
+        label="CPF",
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "off",
+                "inputmode": "numeric",
+                "minlength": "11",
+                "pattern": "[0-9.-]{11,14}",
+                "title": "Informe um CPF com 11 dígitos.",
+            }
+        ),
+    )
+    phone = forms.CharField(
+        required=False,
+        max_length=20,
+        label="Telefone",
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "tel",
+                "inputmode": "tel",
+                "minlength": "8",
+                "pattern": "[0-9()+ -]{8,20}",
+                "title": "Informe um telefone com 8 a 15 dígitos.",
+                "type": "tel",
+            }
+        ),
+    )
     classifications = forms.MultipleChoiceField(
         choices=Member.Classification.choices,
         required=False,

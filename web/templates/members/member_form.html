@@ -16,7 +16,7 @@
         <a href="{{ cancel_url }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Voltar</a>
       </div>
 
-      <form method="post" enctype="multipart/form-data" class="space-y-6">
+      <form method="post" enctype="multipart/form-data" class="space-y-6" x-data="memberFormValidation()" @submit="validateBeforeSubmit($event)">
         {% csrf_token %}
 
         {% if member_form.non_field_errors or address_form.non_field_errors %}
@@ -68,7 +68,37 @@
                 {% endif %}
               </fieldset>
             </div>
-            <c-form.input :field="member_form.cpf" />
+            <div>
+              <label for="{{ member_form.cpf.id_for_label }}" class="mb-2 block text-sm font-medium {% if member_form.cpf.errors %}text-red-700{% else %}text-slate-900{% endif %}">{{ member_form.cpf.label }}</label>
+              <input
+                type="text"
+                name="{{ member_form.cpf.html_name }}"
+                id="{{ member_form.cpf.id_for_label }}"
+                value="{{ member_form.cpf.value|default_if_none:'' }}"
+                maxlength="{{ member_form.cpf.field.max_length }}"
+                minlength="{{ member_form.cpf.field.widget.attrs.minlength }}"
+                pattern="{{ member_form.cpf.field.widget.attrs.pattern }}"
+                inputmode="{{ member_form.cpf.field.widget.attrs.inputmode }}"
+                autocomplete="{{ member_form.cpf.field.widget.attrs.autocomplete }}"
+                title="{{ member_form.cpf.field.widget.attrs.title }}"
+                class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if member_form.cpf.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+                :class="{ 'border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500': cpfError }"
+                x-ref="cpf"
+                x-model="cpf"
+                @input="updateCpf($event.target.value)"
+                @blur="cpfTouched = true"
+                {% if member_form.cpf.errors %}aria-invalid="true"{% endif %}
+                :aria-invalid="cpfError || {{ member_form.cpf.errors|yesno:'true,false' }} ? 'true' : 'false'"
+                aria-describedby="{{ member_form.cpf.id_for_label }}-help {{ member_form.cpf.id_for_label }}-client-error{% if member_form.cpf.errors %} {{ member_form.cpf.id_for_label }}-errors{% endif %}"
+              >
+              <p id="{{ member_form.cpf.id_for_label }}-help" class="mt-1 text-xs text-slate-500">Digite 11 números; máscaras como 123.456.789-01 também são aceitas.</p>
+              <p id="{{ member_form.cpf.id_for_label }}-client-error" class="mt-2 text-sm text-red-600" x-show="cpfTouched && cpfError" x-text="cpfError" role="alert" style="display: none;"></p>
+              {% if member_form.cpf.errors %}
+                <div id="{{ member_form.cpf.id_for_label }}-errors" class="mt-2 space-y-1">
+                  {% for error in member_form.cpf.errors %}<p class="text-sm text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+              {% endif %}
+            </div>
 
             <div class="sm:col-span-2 pt-2">
               <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Nascimento</h3>
@@ -79,10 +109,37 @@
             <c-form.input :field="member_form.birthplace" />
             <c-form.input :field="member_form.profession" />
             <c-form.input :field="member_form.email" />
-            <c-form.input
-              :field="member_form.phone"
-              help_text="Digite DDD e número; máscaras como (11) 99999-9999 também são aceitas."
-            />
+            <div>
+              <label for="{{ member_form.phone.id_for_label }}" class="mb-2 block text-sm font-medium {% if member_form.phone.errors %}text-red-700{% else %}text-slate-900{% endif %}">{{ member_form.phone.label }}</label>
+              <input
+                type="tel"
+                name="{{ member_form.phone.html_name }}"
+                id="{{ member_form.phone.id_for_label }}"
+                value="{{ member_form.phone.value|default_if_none:'' }}"
+                maxlength="{{ member_form.phone.field.max_length }}"
+                minlength="{{ member_form.phone.field.widget.attrs.minlength }}"
+                pattern="{{ member_form.phone.field.widget.attrs.pattern }}"
+                inputmode="{{ member_form.phone.field.widget.attrs.inputmode }}"
+                autocomplete="{{ member_form.phone.field.widget.attrs.autocomplete }}"
+                title="{{ member_form.phone.field.widget.attrs.title }}"
+                class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if member_form.phone.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+                :class="{ 'border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500': phoneError }"
+                x-ref="phone"
+                x-model="phone"
+                @input="phoneTouched = true"
+                @blur="phoneTouched = true"
+                {% if member_form.phone.errors %}aria-invalid="true"{% endif %}
+                :aria-invalid="phoneError || {{ member_form.phone.errors|yesno:'true,false' }} ? 'true' : 'false'"
+                aria-describedby="{{ member_form.phone.id_for_label }}-help {{ member_form.phone.id_for_label }}-client-error{% if member_form.phone.errors %} {{ member_form.phone.id_for_label }}-errors{% endif %}"
+              >
+              <p id="{{ member_form.phone.id_for_label }}-help" class="mt-1 text-xs text-slate-500">Digite DDD e número; máscaras como (11) 99999-9999 também são aceitas.</p>
+              <p id="{{ member_form.phone.id_for_label }}-client-error" class="mt-2 text-sm text-red-600" x-show="phoneTouched && phoneError" x-text="phoneError" role="alert" style="display: none;"></p>
+              {% if member_form.phone.errors %}
+                <div id="{{ member_form.phone.id_for_label }}-errors" class="mt-2 space-y-1">
+                  {% for error in member_form.phone.errors %}<p class="text-sm text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+              {% endif %}
+            </div>
 
             <div class="sm:col-span-2 pt-2">
               <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Vida na igreja</h3>
@@ -111,7 +168,33 @@
               <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Situação do cadastro</h3>
             </div>
 
-            <c-form.checkbox :field="member_form.is_active" class="sm:col-span-2" />
+            <div class="sm:col-span-2">
+              <label for="{{ member_form.is_active.id_for_label }}" class="flex items-start gap-3 rounded-lg border p-3 text-sm {% if member_form.is_active.errors %}border-red-300 bg-red-50 text-red-900{% else %}border-slate-200 bg-slate-50 text-slate-900{% endif %}">
+                <input
+                  type="checkbox"
+                  name="{{ member_form.is_active.html_name }}"
+                  id="{{ member_form.is_active.id_for_label }}"
+                  value="on"
+                  class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-slate-100 text-blue-700 focus:ring-2 focus:ring-blue-600"
+                  x-ref="isActive"
+                  x-model="isActive"
+                  @change="inactiveReasonTouched = !isActive"
+                  {% if member_form.is_active.value %}checked{% endif %}
+                  {% if member_form.is_active.errors %}aria-invalid="true" aria-describedby="{{ member_form.is_active.id_for_label }}-errors"{% elif member_form.is_active.help_text %}aria-describedby="{{ member_form.is_active.id_for_label }}-help"{% endif %}
+                >
+                <span class="flex-1">
+                  <span class="block font-medium">{{ member_form.is_active.label }}</span>
+                  {% if member_form.is_active.help_text %}
+                    <span id="{{ member_form.is_active.id_for_label }}-help" class="mt-1 block text-xs {% if member_form.is_active.errors %}text-red-700{% else %}text-slate-500{% endif %}">{{ member_form.is_active.help_text }}</span>
+                  {% endif %}
+                </span>
+              </label>
+              {% if member_form.is_active.errors %}
+                <div id="{{ member_form.is_active.id_for_label }}-errors" class="mt-2 space-y-1">
+                  {% for error in member_form.is_active.errors %}<p class="text-sm text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+              {% endif %}
+            </div>
             <div class="sm:col-span-2">
               <label for="{{ member_form.inactive_reason.id_for_label }}" class="mb-2 block text-sm font-medium {% if member_form.inactive_reason.errors %}text-red-700{% else %}text-slate-900{% endif %}">{{ member_form.inactive_reason.label }}</label>
               <textarea
@@ -119,11 +202,20 @@
                 id="{{ member_form.inactive_reason.id_for_label }}"
                 rows="3"
                 class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if member_form.inactive_reason.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
-                {% if member_form.inactive_reason.errors %}aria-invalid="true" aria-describedby="{{ member_form.inactive_reason.id_for_label }}-errors"{% elif member_form.inactive_reason.help_text %}aria-describedby="{{ member_form.inactive_reason.id_for_label }}-help"{% endif %}
+                :class="{ 'border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500': inactiveReasonError }"
+                x-ref="inactiveReason"
+                x-model="inactiveReason"
+                @input="inactiveReasonTouched = true"
+                @blur="inactiveReasonTouched = true"
+                :required="!isActive"
+                {% if member_form.inactive_reason.errors %}aria-invalid="true"{% endif %}
+                :aria-invalid="inactiveReasonError || {{ member_form.inactive_reason.errors|yesno:'true,false' }} ? 'true' : 'false'"
+                aria-describedby="{% if member_form.inactive_reason.help_text %}{{ member_form.inactive_reason.id_for_label }}-help {% endif %}{{ member_form.inactive_reason.id_for_label }}-client-error{% if member_form.inactive_reason.errors %} {{ member_form.inactive_reason.id_for_label }}-errors{% endif %}"
               >{{ member_form.inactive_reason.value|default_if_none:"" }}</textarea>
               {% if member_form.inactive_reason.help_text %}
                 <p id="{{ member_form.inactive_reason.id_for_label }}-help" class="mt-1 text-xs text-slate-500">{{ member_form.inactive_reason.help_text }}</p>
               {% endif %}
+              <p id="{{ member_form.inactive_reason.id_for_label }}-client-error" class="mt-2 text-sm text-red-600" x-show="inactiveReasonTouched && inactiveReasonError" x-text="inactiveReasonError" role="alert" style="display: none;"></p>
               {% if member_form.inactive_reason.errors %}
                 <div id="{{ member_form.inactive_reason.id_for_label }}-errors" class="mt-2 space-y-1">
                   {% for error in member_form.inactive_reason.errors %}<p class="text-sm text-red-600">{{ error }}</p>{% endfor %}
@@ -160,4 +252,102 @@
       </form>
     </div>
   </section>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("memberFormValidation", () => ({
+        cpf: "",
+        phone: "",
+        isActive: true,
+        inactiveReason: "",
+        cpfTouched: false,
+        phoneTouched: false,
+        inactiveReasonTouched: false,
+
+        init() {
+          this.cpf = this.formatCpf(this.$refs.cpf?.value || "");
+          this.phone = this.$refs.phone?.value || "";
+          this.isActive = Boolean(this.$refs.isActive?.checked);
+          this.inactiveReason = this.$refs.inactiveReason?.value || "";
+        },
+
+        onlyDigits(value) {
+          return (value || "").replace(/\D/g, "");
+        },
+
+        formatCpf(value) {
+          const digits = this.onlyDigits(value).slice(0, 11);
+
+          if (digits.length <= 3) {
+            return digits;
+          }
+
+          if (digits.length <= 6) {
+            return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+          }
+
+          if (digits.length <= 9) {
+            return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+          }
+
+          return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+        },
+
+        updateCpf(value) {
+          this.cpf = this.formatCpf(value);
+          this.cpfTouched = true;
+        },
+
+        get cpfError() {
+          const digits = this.onlyDigits(this.cpf);
+
+          if (!digits) {
+            return "";
+          }
+
+          return digits.length === 11 ? "" : "Informe um CPF com 11 dígitos.";
+        },
+
+        get phoneError() {
+          const digits = this.onlyDigits(this.phone);
+
+          if (!digits) {
+            return "";
+          }
+
+          return digits.length >= 8 && digits.length <= 15 ? "" : "Informe um telefone com 8 a 15 dígitos.";
+        },
+
+        get inactiveReasonError() {
+          if (this.isActive) {
+            return "";
+          }
+
+          return this.inactiveReason.trim() ? "" : "Informe o motivo para inativar o cadastro.";
+        },
+
+        validateBeforeSubmit(event) {
+          this.cpfTouched = true;
+          this.phoneTouched = true;
+          this.inactiveReasonTouched = true;
+
+          if (!this.cpfError && !this.phoneError && !this.inactiveReasonError) {
+            return;
+          }
+
+          event.preventDefault();
+
+          if (this.cpfError) {
+            this.$refs.cpf?.focus();
+          } else if (this.phoneError) {
+            this.$refs.phone?.focus();
+          } else {
+            this.$refs.inactiveReason?.focus();
+          }
+        },
+      }));
+    });
+  </script>
 {% endblock %}

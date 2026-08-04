@@ -41,6 +41,11 @@
             {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
             {# Repassa limite maximo configurado no campo Django. #}
             {% if field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
+            {# Repassa restricoes HTML nativas configuradas no widget. #}
+            {% if field.field.widget.attrs.minlength %}minlength="{{ field.field.widget.attrs.minlength }}"{% endif %}
+            {% if field.field.widget.attrs.pattern %}pattern="{{ field.field.widget.attrs.pattern }}"{% endif %}
+            {% if field.field.widget.attrs.inputmode %}inputmode="{{ field.field.widget.attrs.inputmode }}"{% endif %}
+            {% if field.field.widget.attrs.title %}title="{{ field.field.widget.attrs.title }}"{% endif %}
             {# Repassa sugestão de autocomplete configurada no widget. #}
             {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
             {# Repassa restricao de tipos de arquivo configurada no widget. #}

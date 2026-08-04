@@ -247,6 +247,37 @@ def test_member_create_page_renders_for_authenticated_user(
 
 
 @pytest.mark.django_db
+def test_member_form_renders_native_and_alpine_validation(
+    rf,
+    django_user_model,
+    monkeypatch,
+):
+    """Member form should include native constraints and Alpine feedback hooks."""
+    user = _create_user(django_user_model)
+    _record_rendered_templates(monkeypatch)
+    request = _attach_request_state(rf.get(reverse("members:create")), user)
+
+    response = member_views.MemberCreateView.as_view()(request)
+    content = response.content.decode()
+
+    assert 'src="/static/js/alpine.min.js"' in content
+    assert 'x-data="memberFormValidation()"' in content
+    assert 'Alpine.data("memberFormValidation"' in content
+    assert 'name="cpf"' in content
+    assert 'maxlength="14"' in content
+    assert 'minlength="11"' in content
+    assert 'pattern="[0-9.-]{11,14}"' in content
+    assert 'inputmode="numeric"' in content
+    assert 'id="id_cpf-client-error"' in content
+    assert 'name="phone"' in content
+    assert 'type="tel"' in content
+    assert 'pattern="[0-9()+ -]{8,20}"' in content
+    assert 'id="id_phone-client-error"' in content
+    assert ':required="!isActive"' in content
+    assert 'id="id_inactive_reason-client-error"' in content
+
+
+@pytest.mark.django_db
 def test_member_create_saves_member_address_and_phone(client, django_user_model):
     """Valid member submission should create member and address records."""
     user = _create_user(django_user_model)
@@ -309,6 +340,42 @@ def test_member_create_rejects_invalid_submission(rf, django_user_model, monkeyp
     assert response.status_code == 200
     assert template_names == ["members/member_form.html"]
     assert b"Incluir na lista de aniversariantes" in response.content
+    assert Member.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_member_create_renders_backend_field_errors_with_client_validation(
+    rf,
+    django_user_model,
+    monkeypatch,
+):
+    """Backend validation errors should remain visible after invalid submit."""
+    user = _create_user(django_user_model)
+    template_names = _record_rendered_templates(monkeypatch)
+    request = _attach_request_state(
+        rf.post(
+            reverse("members:create"),
+            _member_post_data(
+                cpf="123",
+                phone="abc",
+                is_active="",
+                inactive_reason="",
+            ),
+        ),
+        user,
+    )
+
+    response = member_views.MemberCreateView.as_view()(request)
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert template_names == ["members/member_form.html"]
+    assert 'id="id_cpf-errors"' in content
+    assert 'id="id_phone-errors"' in content
+    assert 'id="id_inactive_reason-errors"' in content
+    assert "Informe um CPF com 11 dígitos." in content
+    assert "Informe um telefone com 8 a 15 dígitos." in content
+    assert "Informe o motivo para inativar o cadastro." in content
     assert Member.objects.count() == 0
 
 
