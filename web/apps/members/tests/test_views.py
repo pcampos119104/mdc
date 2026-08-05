@@ -24,6 +24,11 @@ def _image_upload(name="member.gif"):
     )
 
 
+def _invalid_image_upload(name="member.txt"):
+    """Return an invalid image upload for photo validation tests."""
+    return SimpleUploadedFile(name, b"not an image", content_type="text/plain")
+
+
 def _create_user(django_user_model):
     """Create a user allowed to access member management views."""
     return django_user_model.objects.create_user(
@@ -247,6 +252,64 @@ def test_member_create_page_renders_for_authenticated_user(
 
 
 @pytest.mark.django_db
+def test_member_create_form_renders_image_input_without_current_photo(
+    rf,
+    django_user_model,
+    monkeypatch,
+):
+    """Member creation form should render the photo input without a current photo."""
+    user = _create_user(django_user_model)
+    _record_rendered_templates(monkeypatch)
+    request = _attach_request_state(rf.get(reverse("members:create")), user)
+
+    response = member_views.MemberCreateView.as_view()(request)
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'type="file"' in content
+    assert 'name="photo"' in content
+    assert 'id="id_photo"' in content
+    assert 'accept="image/*"' in content
+    assert "currentUrl: ''," in content
+    assert "previewUrl: ''," in content
+    assert "URL.createObjectURL(file)" in content
+    assert "URL.revokeObjectURL(this.temporaryUrl)" in content
+    assert "x-init=\"$el.addEventListener('alpine:destroy', () => destroy())\"" in content
+    assert "Envie uma imagem do membro." in content
+
+
+@pytest.mark.django_db
+def test_member_update_form_renders_existing_photo_preview(
+    rf,
+    django_user_model,
+    monkeypatch,
+    settings,
+    tmp_path,
+):
+    """Member update form should render the current photo URL as initial preview."""
+    settings.MEDIA_ROOT = tmp_path
+    user = _create_user(django_user_model)
+    member = Member.objects.create(
+        name="Maria Silva",
+        photo=_image_upload("maria.gif"),
+    )
+    _record_rendered_templates(monkeypatch)
+    request = _attach_request_state(
+        rf.get(reverse("members:update", args=[member.pk])),
+        user,
+    )
+
+    response = member_views.MemberUpdateView.as_view()(request, pk=member.pk)
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert f'src="{member.photo.url}"' in content
+    assert f"currentUrl: '{member.photo.url}'," in content
+    assert f"previewUrl: '{member.photo.url}'," in content
+    assert 'alt="Prévia da foto de Maria Silva"' in content
+
+
+@pytest.mark.django_db
 def test_member_form_renders_native_and_alpine_validation(
     rf,
     django_user_model,
@@ -376,6 +439,25 @@ def test_member_create_renders_backend_field_errors_with_client_validation(
     assert "Informe um CPF com 11 dígitos." in content
     assert "Informe um telefone com 8 a 15 dígitos." in content
     assert "Informe o motivo para inativar o cadastro." in content
+    assert Member.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_member_create_renders_photo_field_errors(client, django_user_model):
+    """Photo backend validation errors should remain visible on the form."""
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    data = _member_post_data(photo=_invalid_image_upload())
+
+    response = client.post(reverse("members:create"), data)
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'name="photo"' in content
+    assert 'id="id_photo"' in content
+    assert 'accept="image/*"' in content
+    assert 'id="id_photo-errors"' in content
+    assert "Upload a valid image." in content
     assert Member.objects.count() == 0
 
 

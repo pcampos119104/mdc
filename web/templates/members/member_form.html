@@ -34,16 +34,7 @@
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
             <c-form.input :field="member_form.name" class="sm:col-span-2" />
-            <div class="sm:col-span-2 grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[auto,1fr] sm:items-center">
-              {% if member_form.instance.photo %}
-                <img src="{{ member_form.instance.photo.url }}" alt="Foto atual de {{ member_form.instance.name }}" class="h-20 w-20 rounded-full object-cover ring-2 ring-white">
-              {% else %}
-                <div class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-200 text-lg font-semibold text-slate-600 ring-2 ring-white">
-                  {{ member_form.instance.initials|default:"?" }}
-                </div>
-              {% endif %}
-              <c-form.input :field="member_form.photo" help_text="Envie uma imagem do membro. Ao editar, deixe em branco para manter a foto atual." />
-            </div>
+            <c-form.image-input :field="member_form.photo" help_text="Envie uma imagem do membro. Ao editar, deixe em branco para manter a foto atual." />
             <c-form.select :field="member_form.registration_type" />
             <div>
               <fieldset>

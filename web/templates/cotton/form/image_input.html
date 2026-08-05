@@ -1,0 +1,103 @@
+<c-vars
+    class="sm:col-span-2 grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[auto,1fr] sm:items-center"
+    :nolabel="False"
+    :show_help="True"
+    :required="None"
+    help_text=""
+/>
+
+<div
+    class="{{ class }}"
+    x-data="{
+        currentUrl: '{% if field.value %}{{ field.value.url|escapejs }}{% endif %}',
+        previewUrl: '{% if field.value %}{{ field.value.url|escapejs }}{% endif %}',
+        temporaryUrl: null,
+
+        updatePreview(event) {
+            const file = event.target.files[0];
+
+            if (this.temporaryUrl) {
+                URL.revokeObjectURL(this.temporaryUrl);
+                this.temporaryUrl = null;
+            }
+
+            if (!file) {
+                this.previewUrl = this.currentUrl;
+                return;
+            }
+
+            this.temporaryUrl = URL.createObjectURL(file);
+            this.previewUrl = this.temporaryUrl;
+        },
+
+        destroy() {
+            if (this.temporaryUrl) {
+                URL.revokeObjectURL(this.temporaryUrl);
+            }
+        }
+    }"
+    x-init="$el.addEventListener('alpine:destroy', () => destroy())"
+>
+    {% with input_type=field.field.widget.attrs.type|default:field.field.widget.input_type|default:"file" field_help=help_text|default:field.help_text %}
+        <img
+            {% if field.value %}src="{{ field.value.url }}"{% endif %}
+            x-bind:src="previewUrl"
+            x-show="previewUrl"
+            alt="{% if field.form.instance.name %}Prévia da foto de {{ field.form.instance.name }}{% else %}Prévia da foto do membro{% endif %}"
+            class="h-20 w-20 rounded-full object-cover ring-2 ring-white"
+            {% if not field.value %}style="display: none;"{% endif %}
+        >
+        <div
+            x-show="!previewUrl"
+            class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-200 text-lg font-semibold text-slate-600 ring-2 ring-white"
+            aria-label="{% if field.form.instance.name %}Avatar de {{ field.form.instance.name }}{% else %}Avatar do membro{% endif %}"
+            {% if field.value %}style="display: none;"{% endif %}
+        >
+            {{ field.form.instance.initials|default:"?" }}
+        </div>
+
+        <div>
+            {% if nolabel is False %}
+                <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium {% if field.errors %}text-red-700{% else %}text-slate-900{% endif %}">
+                    {{ field.label }}
+
+                    {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}
+                        <span class="text-red-600" aria-hidden="true">*</span>
+                    {% endif %}
+                </label>
+            {% endif %}
+
+            <input
+                type="{{ input_type }}"
+                name="{{ field.html_name }}"
+                id="{{ field.id_for_label }}"
+                class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+                @change="updatePreview($event)"
+                {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
+                {% if field.field.widget.attrs.accept %}accept="{{ field.field.widget.attrs.accept }}"{% endif %}
+                {% if field.errors %}
+                    aria-invalid="true"
+                    aria-describedby="{{ field.id_for_label }}-errors"
+                {% elif show_help and field_help %}
+                    aria-describedby="{{ field.id_for_label }}-help"
+                {% endif %}
+            >
+
+            {% if show_help and field_help %}
+                <p id="{{ field.id_for_label }}-help" class="mt-1 text-xs text-slate-500">
+                    {{ field_help }}
+                </p>
+            {% endif %}
+
+            {% if field.errors %}
+                <div id="{{ field.id_for_label }}-errors" class="mt-2 space-y-1">
+                    {% for error in field.errors %}
+                        <p class="text-sm text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% endwith %}
+</div>
