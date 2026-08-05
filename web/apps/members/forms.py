@@ -143,6 +143,9 @@ class MemberForm(forms.ModelForm):
         if not photo:
             return photo
 
+        if getattr(photo, "_committed", False):
+            return photo
+
         if photo.size > MEMBER_PHOTO_MAX_UPLOAD_SIZE:
             raise forms.ValidationError("Envie uma foto de até 5 MB.")
 
