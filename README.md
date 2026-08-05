@@ -138,8 +138,8 @@ EMAIL_HOST_USER=resend
 EMAIL_HOST_PASSWORD=re_your_resend_api_key
 EMAIL_USE_TLS=1
 EMAIL_USE_SSL=0
-DEFAULT_FROM_EMAIL=MDC <noreply@your-domain.com>
-SERVER_EMAIL=MDC <noreply@your-domain.com>
+DEFAULT_FROM_EMAIL=Comuna Bristol <noreply@your-domain.com>
+SERVER_EMAIL=Comuna Bristol <noreply@your-domain.com>
 ```
 
 The sender domain must be verified in Resend before production emails can be
