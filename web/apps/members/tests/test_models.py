@@ -1,12 +1,26 @@
 """Tests for members app models."""
 
 from datetime import date
+from io import BytesIO
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
+from PIL import Image
 
 from apps.members.models import Address, Member
+
+
+def _image_upload(name="member.png", size=(1200, 800), image_format="PNG"):
+    """Return an in-memory image upload for model tests."""
+    image_content = BytesIO()
+    Image.new("RGB", size, (29, 78, 216)).save(image_content, format=image_format)
+    return SimpleUploadedFile(
+        name,
+        image_content.getvalue(),
+        content_type=f"image/{image_format.lower()}",
+    )
 
 
 @pytest.mark.django_db
@@ -90,6 +104,26 @@ def test_member_initials_use_first_two_name_parts():
     member = Member(name="Maria Silva Santos")
 
     assert member.initials == "MS"
+
+
+@pytest.mark.django_db
+def test_member_resizes_uploaded_photo_before_storage(settings, tmp_path):
+    """Member photo uploads should be converted to bounded JPEG files."""
+    settings.MEDIA_ROOT = tmp_path
+
+    member = Member.objects.create(
+        name="Maria Silva",
+        photo=_image_upload(),
+    )
+
+    assert member.photo.name.endswith(".jpg")
+    member.photo.open("rb")
+    try:
+        with Image.open(member.photo.file) as stored_image:
+            assert stored_image.format == "JPEG"
+            assert max(stored_image.size) <= 512
+    finally:
+        member.photo.close()
 
 
 @pytest.mark.django_db

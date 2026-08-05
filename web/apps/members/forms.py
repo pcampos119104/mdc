@@ -12,6 +12,15 @@ def _only_digits(value):
     return re.sub(r"\D", "", value or "")
 
 
+MEMBER_PHOTO_MAX_UPLOAD_SIZE = 5 * 1024 * 1024
+MEMBER_PHOTO_ALLOWED_CONTENT_TYPES = {
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+}
+
+
 class MemberForm(forms.ModelForm):
     """Validate the main registration data for a member."""
 
@@ -127,6 +136,21 @@ class MemberForm(forms.ModelForm):
         self.fields["baptism_date"].input_formats = ["%Y-%m-%d"]
         self.fields["acclamation_date"].input_formats = ["%Y-%m-%d"]
         self.fields["marriage_date"].input_formats = ["%Y-%m-%d"]
+
+    def clean_photo(self):
+        """Accept only reasonably sized image uploads for member photos."""
+        photo = self.cleaned_data.get("photo")
+        if not photo:
+            return photo
+
+        if photo.size > MEMBER_PHOTO_MAX_UPLOAD_SIZE:
+            raise forms.ValidationError("Envie uma foto de até 5 MB.")
+
+        content_type = getattr(photo, "content_type", "")
+        if content_type and content_type not in MEMBER_PHOTO_ALLOWED_CONTENT_TYPES:
+            raise forms.ValidationError("Envie uma imagem JPEG, PNG, WEBP ou GIF.")
+
+        return photo
 
     def clean_cpf(self):
         """Store CPF with digits only while accepting common masks."""

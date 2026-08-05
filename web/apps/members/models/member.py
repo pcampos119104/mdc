@@ -1,10 +1,64 @@
 """Member model for the members app."""
 
+from io import BytesIO
+from pathlib import Path
+
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
 from django.db import models
+from PIL import Image, ImageOps
 
 from .base import SoftDeleteModel
+
+
+MEMBER_PHOTO_MAX_DIMENSION = 512
+MEMBER_PHOTO_JPEG_QUALITY = 85
+
+
+def _jpeg_photo_name(name):
+    """Return a stable JPEG filename for a member photo upload."""
+    if not name:
+        return "member_photo.jpg"
+
+    return str(Path(name).with_suffix(".jpg"))
+
+
+def _to_rgb_image(image):
+    """Return an RGB image, preserving transparent uploads on white background."""
+    if image.mode == "RGB":
+        return image
+
+    if image.mode in {"RGBA", "LA"} or "transparency" in image.info:
+        image = image.convert("RGBA")
+        background = Image.new("RGB", image.size, (255, 255, 255))
+        background.paste(image, mask=image.getchannel("A"))
+        return background
+
+    return image.convert("RGB")
+
+
+def _resize_member_photo(uploaded_file, name):
+    """Return a compressed JPEG ContentFile for a newly uploaded member photo."""
+    uploaded_file.seek(0)
+    with Image.open(uploaded_file) as image:
+        image = ImageOps.exif_transpose(image)
+        image.thumbnail(
+            (MEMBER_PHOTO_MAX_DIMENSION, MEMBER_PHOTO_MAX_DIMENSION),
+            Image.Resampling.LANCZOS,
+        )
+        image = _to_rgb_image(image)
+
+        output = BytesIO()
+        image.save(
+            output,
+            format="JPEG",
+            quality=MEMBER_PHOTO_JPEG_QUALITY,
+            optimize=True,
+        )
+
+    uploaded_file.seek(0)
+    return ContentFile(output.getvalue(), name=_jpeg_photo_name(name))
 
 
 class Member(SoftDeleteModel):
@@ -167,6 +221,13 @@ class Member(SoftDeleteModel):
     def __str__(self):
         """Return the member name for admin and shell displays."""
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Resize newly uploaded photos before storing the member record."""
+        if self.photo and not getattr(self.photo, "_committed", True):
+            self.photo = _resize_member_photo(self.photo.file, self.photo.name)
+
+        super().save(*args, **kwargs)
 
     @property
     def initials(self):

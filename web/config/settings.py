@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 import sentry_sdk
+from botocore.config import Config
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -168,18 +169,30 @@ def media_storage_config():
 
     querystring_auth = parse_bool_env("AWS_QUERYSTRING_AUTH", default=True)
     default_acl = os.environ.get("AWS_DEFAULT_ACL", "private") or None
+    addressing_style = os.environ.get("AWS_S3_ADDRESSING_STYLE", "path")
+    signature_version = os.environ.get("AWS_S3_SIGNATURE_VERSION", "s3v4")
     options = {
         "access_key": os.environ.get("AWS_ACCESS_KEY_ID", ""),
         "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY", ""),
         "bucket_name": os.environ.get("AWS_STORAGE_BUCKET_NAME", ""),
         "endpoint_url": os.environ.get("AWS_S3_ENDPOINT_URL", ""),
         "region_name": os.environ.get("AWS_S3_REGION_NAME", "us-east-1"),
-        "addressing_style": os.environ.get("AWS_S3_ADDRESSING_STYLE", "path"),
-        "signature_version": os.environ.get("AWS_S3_SIGNATURE_VERSION", "s3v4"),
+        "addressing_style": addressing_style,
+        "signature_version": signature_version,
         "querystring_auth": querystring_auth,
         "querystring_expire": parse_int_env("AWS_QUERYSTRING_EXPIRE", 300),
         "default_acl": default_acl,
         "location": MEDIA_LOCATION,
+        "client_config": Config(
+            connect_timeout=parse_int_env("AWS_S3_CONNECT_TIMEOUT", 5),
+            read_timeout=parse_int_env("AWS_S3_READ_TIMEOUT", 15),
+            retries={
+                "max_attempts": parse_int_env("AWS_S3_MAX_ATTEMPTS", 2),
+                "mode": os.environ.get("AWS_S3_RETRY_MODE", "standard"),
+            },
+            s3={"addressing_style": addressing_style},
+            signature_version=signature_version,
+        ),
     }
 
     custom_domain = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "")

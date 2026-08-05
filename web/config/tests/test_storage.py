@@ -28,11 +28,17 @@ def test_media_storage_uses_s3_when_enabled(monkeypatch):
     monkeypatch.setenv("AWS_QUERYSTRING_EXPIRE", "300")
     monkeypatch.setenv("AWS_DEFAULT_ACL", "private")
     monkeypatch.setenv("AWS_S3_CUSTOM_DOMAIN", "media.example.com")
+    monkeypatch.setenv("AWS_S3_CONNECT_TIMEOUT", "4")
+    monkeypatch.setenv("AWS_S3_READ_TIMEOUT", "12")
+    monkeypatch.setenv("AWS_S3_MAX_ATTEMPTS", "2")
+    monkeypatch.setenv("AWS_S3_RETRY_MODE", "standard")
 
     storage_config = media_storage_config()
+    storage_options = dict(storage_config["OPTIONS"])
+    client_config = storage_options.pop("client_config")
 
     assert storage_config["BACKEND"] == "storages.backends.s3.S3Storage"
-    assert storage_config["OPTIONS"] == {
+    assert storage_options == {
         "access_key": "example-access-key",
         "secret_key": "example-secret-key",
         "bucket_name": "mdc-media",
@@ -45,6 +51,11 @@ def test_media_storage_uses_s3_when_enabled(monkeypatch):
         "default_acl": "private",
         "location": "media",
     }
+    assert client_config.connect_timeout == 4
+    assert client_config.read_timeout == 12
+    assert client_config.retries == {"max_attempts": 2, "mode": "standard"}
+    assert client_config.s3 == {"addressing_style": "path"}
+    assert client_config.signature_version == "s3v4"
 
 
 def test_media_storage_allows_unsigned_custom_domain(monkeypatch):

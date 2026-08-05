@@ -3,12 +3,27 @@
 from datetime import date
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 
+from apps.members import forms as member_forms
 from apps.members.forms import AddressForm, MemberForm
 from apps.members.models import Member
 
 
 pytestmark = pytest.mark.django_db
+
+
+def _image_upload(name="member.gif"):
+    """Return a small valid image upload for form tests."""
+    return SimpleUploadedFile(
+        name,
+        (
+            b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00"
+            b"\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00"
+            b"\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+        ),
+        content_type="image/gif",
+    )
 
 
 def test_member_form_normalizes_masked_cpf():
@@ -93,3 +108,18 @@ def test_member_form_rejects_invalid_phone():
 
     assert not form.is_valid()
     assert "phone" in form.errors
+
+
+def test_member_form_rejects_oversized_photo(monkeypatch):
+    """Member form should reject images above the configured upload limit."""
+    monkeypatch.setattr(member_forms, "MEMBER_PHOTO_MAX_UPLOAD_SIZE", 10)
+    form = MemberForm(
+        data={
+            "name": "Maria Silva",
+            "registration_type": Member.RegistrationType.MEMBER,
+        },
+        files={"photo": _image_upload()},
+    )
+
+    assert not form.is_valid()
+    assert "Envie uma foto de até 5 MB." in form.errors["photo"]
