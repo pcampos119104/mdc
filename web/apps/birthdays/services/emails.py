@@ -31,8 +31,8 @@ def sanitize_exception_message(exc):
     return f"{exc.__class__.__name__}: {message}"[:1000]
 
 
-def send_birthday_report_email(report):
-    """Send a birthday report e-mail with the stored JPEG attached."""
+def send_birthday_report_email(report, *, image_content=None):
+    """Send a birthday report e-mail with the supplied or stored JPEG attached."""
     if not report.recipients:
         raise BirthdayReportEmailError(
             "Nenhum destinatário configurado para este relatório."
@@ -56,11 +56,12 @@ def send_birthday_report_email(report):
         to=report.recipients,
     )
 
-    report.image.open("rb")
-    try:
-        image_content = report.image.read()
-    finally:
-        report.image.close()
+    if image_content is None:
+        report.image.open("rb")
+        try:
+            image_content = report.image.read()
+        finally:
+            report.image.close()
 
     message.attach(report.image_filename, image_content, "image/jpeg")
     sent_count = message.send(fail_silently=False)

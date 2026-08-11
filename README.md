@@ -154,9 +154,8 @@ Administrators and staff users can configure weekly birthday reports at:
 ```
 
 The feature stores a JPEG image generated from a Django HTML template and sends
-it as an e-mail attachment to the configured recipients. Report images are
-served through authenticated Django views, so private media buckets do not need
-to be public.
+it as an e-mail attachment to the configured recipients. Staff access is checked
+by Django before the report is redirected to a short-lived private media URL.
 
 Scheduling is intentionally external. Configure cron, Dokploy scheduled jobs, or
 another infrastructure scheduler to run:
@@ -202,9 +201,7 @@ AWS_S3_ENDPOINT_URL=https://s3.faramir.com.br
 AWS_S3_REGION_NAME=us-east-1
 AWS_S3_ADDRESSING_STYLE=path
 AWS_S3_SIGNATURE_VERSION=s3v4
-AWS_QUERYSTRING_AUTH=1
 AWS_QUERYSTRING_EXPIRE=300
-AWS_DEFAULT_ACL=private
 ```
 
 The bucket named in `AWS_STORAGE_BUCKET_NAME` must exist before the first upload.
@@ -214,26 +211,49 @@ bucket.
 
 For presigned URLs, `AWS_S3_ENDPOINT_URL` must be reachable both by the Django
 container and by users' browsers. Do not set it to an internal-only Docker host
-such as `http://rustfs:9000` for this mode, because the generated URL would also
-contain that internal hostname. In Dokploy, point it to the public HTTPS RustFS
-endpoint, for example `https://s3.faramir.com.br`.
+such as `http://rustfs:9000`, because generated URLs would contain that internal
+hostname. In Dokploy, use the public HTTPS RustFS API endpoint, for example
+`https://s3.faramir.com.br`.
 
-Keep `AWS_S3_CUSTOM_DOMAIN` empty when `AWS_QUERYSTRING_AUTH=1`. The S3 backend
-generates presigned URLs from `AWS_S3_ENDPOINT_URL`; setting a custom domain is
-only useful for public, unsigned media URLs or a separate CDN signing setup.
+Signed URLs and no object ACL are enforced by the application. Do not add public
+bucket policies. The Django access key needs `s3:GetObject` and `s3:PutObject`
+for `arn:aws:s3:::mdc-media/media/*`; browser access uses URLs that expire after
+`AWS_QUERYSTRING_EXPIRE` seconds.
 
-If the RustFS deployment does not accept object ACLs, use an empty ACL and rely
-on the bucket policy/user permissions instead:
+### RustFS endpoint behind Cloudflare and Dokploy
 
-```env
-AWS_DEFAULT_ACL=
+The S3 API hostname must accept signed `GET`, `HEAD`, `PUT`, `POST`, and `DELETE`
+requests. `HeadObject` is used by Django when it reads a stored file. A `403` for
+`HeadObject` while `GetObject` works indicates a proxy problem, not a Django
+permission problem.
+
+For `s3.faramir.com.br`, prefer a Cloudflare **DNS only** record pointing to the
+Dokploy host. This does not make bucket objects public: unsigned requests still
+receive `403`. If Cloudflare proxying is required, add a bypass rule for this
+hostname and disable WAF, bot, cache, and URL transformation rules that can alter
+S3 methods, headers, paths, or query strings.
+
+In Dokploy, route `s3.faramir.com.br` through Traefik directly to the RustFS S3
+API port, not the admin console. The router must preserve the original `Host`,
+`Authorization`, `x-amz-*` headers, full path, and query string. Do not apply a
+prefix-stripping, method-filtering, authentication, or cache middleware. The
+equivalent Traefik service behavior is:
+
+```text
+Host(`s3.faramir.com.br`) -> RustFS S3 API :9000
+passHostHeader=true
 ```
 
-Do not add public bucket policies for member photos. The Django access key needs
-read/write permissions for `mdc-media/media/*`, while browser access should
-happen through presigned URLs that expire after `AWS_QUERYSTRING_EXPIRE` seconds.
-`AWS_S3_SIGNATURE_VERSION=s3v4` keeps signing explicit for RustFS-compatible
-presigned URLs.
+After deployment, verify from the Django container using the application access
+key. This must succeed:
+
+```sh
+aws --endpoint-url "$AWS_S3_ENDPOINT_URL" s3api head-object \
+  --bucket mdc-media \
+  --key "media/birthday_reports/2026/08/aniversariantes_2026-08-10_2026-08-16.jpg"
+```
+
+An unsigned request to that same object URL must still return `403`.
 
 ## Sentry
 

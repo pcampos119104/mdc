@@ -95,7 +95,7 @@ def test_process_scheduled_birthday_sends_due_report(monkeypatch, settings, tmp_
     monkeypatch.setattr(
         report_services,
         "send_birthday_report_email",
-        lambda report: timezone.now(),
+        lambda report, image_content=None: timezone.now(),
     )
     stdout = StringIO()
 
@@ -117,7 +117,7 @@ def test_process_scheduled_birthday_logs_email_failure(monkeypatch, settings, tm
     Member.objects.create(name="Maria Silva", birth_date=date(1990, today.month, today.day))
     _patch_generation_success(monkeypatch)
 
-    def failing_send(report):
+    def failing_send(report, image_content=None):
         """Raise an e-mail failure for command tests."""
         raise RuntimeError("SMTP indisponível")
 

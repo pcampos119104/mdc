@@ -167,8 +167,6 @@ def media_storage_config():
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         }
 
-    querystring_auth = parse_bool_env("AWS_QUERYSTRING_AUTH", default=True)
-    default_acl = os.environ.get("AWS_DEFAULT_ACL", "private") or None
     addressing_style = os.environ.get("AWS_S3_ADDRESSING_STYLE", "path")
     signature_version = os.environ.get("AWS_S3_SIGNATURE_VERSION", "s3v4")
     options = {
@@ -179,9 +177,9 @@ def media_storage_config():
         "region_name": os.environ.get("AWS_S3_REGION_NAME", "us-east-1"),
         "addressing_style": addressing_style,
         "signature_version": signature_version,
-        "querystring_auth": querystring_auth,
+        "querystring_auth": True,
         "querystring_expire": parse_int_env("AWS_QUERYSTRING_EXPIRE", 300),
-        "default_acl": default_acl,
+        "default_acl": None,
         "location": MEDIA_LOCATION,
         "client_config": Config(
             connect_timeout=parse_int_env("AWS_S3_CONNECT_TIMEOUT", 5),
@@ -194,11 +192,6 @@ def media_storage_config():
             signature_version=signature_version,
         ),
     }
-
-    custom_domain = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "")
-    if custom_domain and not querystring_auth:
-        options["custom_domain"] = custom_domain
-        options["url_protocol"] = os.environ.get("AWS_S3_URL_PROTOCOL", "https:")
 
     return {
         "BACKEND": "storages.backends.s3.S3Storage",

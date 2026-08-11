@@ -61,11 +61,11 @@ def _set_report_failed(report, exc, *, sent_at=None):
     report.save(update_fields=["send_status", "error_message", "sent_at", "updated_at"])
 
 
-def _send_and_update_report(report):
+def _send_and_update_report(report, *, image_content=None):
     """Send a report e-mail and update business status fields."""
     attempted_at = timezone.now()
     try:
-        sent_at = send_birthday_report_email(report)
+        sent_at = send_birthday_report_email(report, image_content=image_content)
     except Exception as exc:
         report.send_status = BirthdayReport.SendStatus.FAILED
         report.sent_at = attempted_at
@@ -126,7 +126,7 @@ def create_birthday_report(settings_obj, period_start, period_end, *, is_automat
     report.member_count = len(members)
     report.save(update_fields=["image", "member_count", "updated_at"])
 
-    email_sent = _send_and_update_report(report)
+    email_sent = _send_and_update_report(report, image_content=image_content)
     return BirthdayReportResult(
         report=report,
         members=members,

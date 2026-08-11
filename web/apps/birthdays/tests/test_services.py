@@ -25,16 +25,24 @@ def _settings(**overrides):
 
 def _patch_successful_generation_and_email(monkeypatch):
     """Patch image generation and e-mail sending to succeed."""
+    captured = {}
     monkeypatch.setattr(
         report_services,
         "generate_birthday_report_image",
         lambda members, period_start, period_end: b"jpeg-content",
     )
+
+    def successful_send(report, *, image_content=None):
+        """Record generated content sent without reopening the stored image."""
+        captured["image_content"] = image_content
+        return timezone.now()
+
     monkeypatch.setattr(
         report_services,
         "send_birthday_report_email",
-        lambda report: timezone.now(),
+        successful_send,
     )
+    return captured
 
 
 @pytest.mark.django_db
@@ -43,7 +51,7 @@ def test_create_birthday_report_stores_image_and_marks_email_sent(monkeypatch, s
     settings.MEDIA_ROOT = tmp_path
     settings_obj = _settings()
     Member.objects.create(name="Maria Silva", birth_date=date(1990, 7, 22))
-    _patch_successful_generation_and_email(monkeypatch)
+    captured = _patch_successful_generation_and_email(monkeypatch)
 
     result = report_services.create_birthday_report(
         settings_obj,
@@ -61,6 +69,7 @@ def test_create_birthday_report_stores_image_and_marks_email_sent(monkeypatch, s
     assert report.image.storage.exists(report.image.name)
     assert result.image_created is True
     assert result.email_sent is True
+    assert captured["image_content"] == b"jpeg-content"
 
 
 @pytest.mark.django_db
@@ -76,7 +85,7 @@ def test_create_birthday_report_preserves_image_when_smtp_fails(monkeypatch, set
         lambda members, period_start, period_end: b"jpeg-content",
     )
 
-    def failing_send(report):
+    def failing_send(report, *, image_content=None):
         """Raise an SMTP-like failure for tests."""
         raise RuntimeError("SMTP failed with secret-token")
 
@@ -107,7 +116,7 @@ def test_create_birthday_report_records_generation_failure_without_sending(monke
         """Raise a rendering failure for tests."""
         raise RuntimeError("Chromium failed")
 
-    def unexpected_send(report):
+    def unexpected_send(report, *, image_content=None):
         """Fail if e-mail sending is attempted after generation failure."""
         raise AssertionError("E-mail should not be sent")
 
@@ -210,10 +219,11 @@ def test_resend_birthday_report_uses_existing_image_and_stored_recipients(monkey
     report.image.save(report.image_filename, ContentFile(b"jpeg-content"), save=True)
     captured = {}
 
-    def fake_send(report_to_send):
+    def fake_send(report_to_send, *, image_content=None):
         """Capture recipients used by re-send."""
         captured["recipients"] = list(report_to_send.recipients)
         captured["image_name"] = report_to_send.image.name
+        captured["image_content"] = image_content
         return timezone.now()
 
     monkeypatch.setattr(report_services, "send_birthday_report_email", fake_send)
@@ -223,5 +233,6 @@ def test_resend_birthday_report_uses_existing_image_and_stored_recipients(monkey
     report.refresh_from_db()
     assert captured["recipients"] == ["old@example.com"]
     assert captured["image_name"] == report.image.name
+    assert captured["image_content"] is None
     assert report.send_status == BirthdayReport.SendStatus.SENT
     assert result.email_sent is True
