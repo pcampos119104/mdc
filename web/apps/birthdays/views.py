@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from storages.backends.s3 import S3Storage
 
 from .forms import BirthdayReportSettingsForm
 from .models import BirthdayReport, BirthdayReportSettings
@@ -94,10 +95,27 @@ def _open_report_image(report):
     return report.image
 
 
+def _report_image_url(report, *, as_attachment=False):
+    """Return a presigned S3 GET URL for an authorized report image."""
+    parameters = None
+    if as_attachment:
+        parameters = {
+            "ResponseContentDisposition": (
+                f'attachment; filename="{report.image_filename}"'
+            ),
+            "ResponseContentType": "image/jpeg",
+        }
+
+    return report.image.storage.url(report.image.name, parameters=parameters)
+
+
 @birthday_admin_required
 def birthday_report_image(request, pk):
     """Display a generated birthday report image to an authorized user."""
     report = get_object_or_404(BirthdayReport, pk=pk)
+    if isinstance(report.image.storage, S3Storage):
+        return redirect(_report_image_url(report))
+
     return FileResponse(_open_report_image(report), content_type="image/jpeg")
 
 
@@ -105,6 +123,9 @@ def birthday_report_image(request, pk):
 def birthday_report_image_download(request, pk):
     """Download a generated birthday report image to an authorized user."""
     report = get_object_or_404(BirthdayReport, pk=pk)
+    if isinstance(report.image.storage, S3Storage):
+        return redirect(_report_image_url(report, as_attachment=True))
+
     return FileResponse(
         _open_report_image(report),
         as_attachment=True,

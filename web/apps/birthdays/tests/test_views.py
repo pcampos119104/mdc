@@ -5,6 +5,7 @@ from datetime import date
 import pytest
 from django.core.files.base import ContentFile
 from django.urls import reverse
+from storages.backends.s3 import S3Storage
 
 from apps.birthdays.models import BirthdayReport, BirthdayReportSettings
 from apps.birthdays.services.reports import BirthdayReportResult
@@ -158,6 +159,55 @@ def test_birthday_report_image_requires_staff_and_serves_private_file(
 
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "image/jpeg"
+
+
+@pytest.mark.django_db
+def test_birthday_report_images_redirect_to_presigned_s3_urls(
+    client,
+    django_user_model,
+    monkeypatch,
+    settings,
+    tmp_path,
+):
+    """S3 report delivery should avoid server-side storage reads."""
+    class PresignedS3Storage(S3Storage):
+        """S3 storage double that records generated URL parameters."""
+
+        calls: list[tuple[str, dict[str, str] | None]] = []
+
+        def url(self, name, parameters=None, expire=None, http_method=None):
+            """Return a deterministic presigned URL for assertions."""
+            self.calls.append((name, parameters))
+            return f"https://s3.example.com/{name}?signature=example"
+
+    settings.MEDIA_ROOT = tmp_path
+    report = _report_with_image()
+    storage = object.__new__(PresignedS3Storage)
+    storage.calls = []
+    monkeypatch.setattr(BirthdayReport._meta.get_field("image"), "storage", storage)
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+
+    image_response = client.get(reverse("birthdays:image", args=[report.pk]))
+    download_response = client.get(reverse("birthdays:image_download", args=[report.pk]))
+
+    assert image_response.status_code == 302
+    assert image_response.headers["Location"] == (
+        f"https://s3.example.com/{report.image.name}?signature=example"
+    )
+    assert download_response.status_code == 302
+    assert storage.calls == [
+        (report.image.name, None),
+        (
+            report.image.name,
+            {
+                "ResponseContentDisposition": (
+                    f'attachment; filename="{report.image_filename}"'
+                ),
+                "ResponseContentType": "image/jpeg",
+            },
+        ),
+    ]
 
 
 @pytest.mark.django_db
