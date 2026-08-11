@@ -1,8 +1,14 @@
 """E-mail services for birthday reports."""
 
+from urllib.request import urlopen
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
+from storages.backends.s3 import S3Storage
+
+
+REPORT_IMAGE_DOWNLOAD_TIMEOUT = 15
 
 
 class BirthdayReportEmailError(Exception):
@@ -31,6 +37,19 @@ def sanitize_exception_message(exc):
     return f"{exc.__class__.__name__}: {message}"[:1000]
 
 
+def _read_stored_report_image(report):
+    """Read a stored report image without a HeadObject request in S3."""
+    if isinstance(report.image.storage, S3Storage):
+        with urlopen(report.image.url, timeout=REPORT_IMAGE_DOWNLOAD_TIMEOUT) as response:
+            return response.read()
+
+    report.image.open("rb")
+    try:
+        return report.image.read()
+    finally:
+        report.image.close()
+
+
 def send_birthday_report_email(report, *, image_content=None):
     """Send a birthday report e-mail with the supplied or stored JPEG attached."""
     if not report.recipients:
@@ -57,11 +76,7 @@ def send_birthday_report_email(report, *, image_content=None):
     )
 
     if image_content is None:
-        report.image.open("rb")
-        try:
-            image_content = report.image.read()
-        finally:
-            report.image.close()
+        image_content = _read_stored_report_image(report)
 
     message.attach(report.image_filename, image_content, "image/jpeg")
     sent_count = message.send(fail_silently=False)

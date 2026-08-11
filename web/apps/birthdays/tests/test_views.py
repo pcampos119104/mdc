@@ -137,6 +137,23 @@ def test_birthday_history_lists_latest_five_reports(client, django_user_model):
 
 
 @pytest.mark.django_db
+def test_birthday_history_opens_report_image_in_new_tab(client, django_user_model):
+    """Report image links should open in a separate browser tab."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    report = _report_with_image()
+
+    response = client.get(reverse("birthdays:history"))
+    content = response.content.decode()
+
+    image_url = reverse("birthdays:image", args=[report.pk])
+    assert response.status_code == 200
+    assert (
+        f'href="{image_url}" target="_blank" rel="noopener noreferrer"' in content
+    )
+
+
+@pytest.mark.django_db
 def test_birthday_report_image_requires_staff_and_redirects_to_private_file(
     client,
     django_user_model,
