@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from storages.backends.s3 import S3Storage
 
 from .forms import BirthdayReportSettingsForm
 from .models import BirthdayReport, BirthdayReportSettings
@@ -107,6 +108,21 @@ def birthday_report_image(request, pk):
 def birthday_report_image_download(request, pk):
     """Download a generated birthday report image to an authorized user."""
     report = get_object_or_404(BirthdayReport, pk=pk)
+    if not report.image:
+        raise Http404("Relatório sem imagem gerada.")
+    if isinstance(report.image.storage, S3Storage):
+        return redirect(
+            report.image.storage.url(
+                report.image.name,
+                parameters={
+                    "ResponseContentDisposition": (
+                        f'attachment; filename="{report.image_filename}"'
+                    ),
+                    "ResponseContentType": "image/jpeg",
+                },
+            )
+        )
+
     return FileResponse(
         _open_report_image(report),
         as_attachment=True,
