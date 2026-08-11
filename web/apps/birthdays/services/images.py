@@ -7,6 +7,7 @@ from pathlib import Path
 from django.conf import settings
 from django.template.loader import render_to_string
 from PIL import Image, ImageOps
+from storages.backends.s3 import S3Storage
 
 
 BIRTHDAY_PHOTO_MAX_DIMENSION = 256
@@ -41,11 +42,25 @@ def _file_to_data_url(field_file):
         return DEFAULT_PHOTO_DATA_URL
 
     try:
-        if field_file.size > BIRTHDAY_PHOTO_MAX_SOURCE_SIZE:
-            return DEFAULT_PHOTO_DATA_URL
+        storage = getattr(field_file, "storage", None)
+        if isinstance(storage, S3Storage):
+            response = storage.connection.meta.client.get_object(
+                Bucket=storage.bucket_name,
+                Key=storage._normalize_name(field_file.name),
+            )
+            source_file = response["Body"]
+            try:
+                if response["ContentLength"] > BIRTHDAY_PHOTO_MAX_SOURCE_SIZE:
+                    return DEFAULT_PHOTO_DATA_URL
+                content = source_file.read()
+            finally:
+                source_file.close()
+        else:
+            if field_file.size > BIRTHDAY_PHOTO_MAX_SOURCE_SIZE:
+                return DEFAULT_PHOTO_DATA_URL
 
-        field_file.open("rb")
-        content = field_file.read()
+            field_file.open("rb")
+            content = field_file.read()
     except Exception:
         return DEFAULT_PHOTO_DATA_URL
     finally:
