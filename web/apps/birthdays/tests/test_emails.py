@@ -1,6 +1,7 @@
 """Tests for birthday report e-mail delivery."""
 
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 from django.core import mail
@@ -39,34 +40,57 @@ def test_send_birthday_report_email_uses_supplied_image_content(monkeypatch, set
 
 
 @pytest.mark.django_db
-def test_send_birthday_report_email_downloads_stored_s3_image_with_presigned_get(
+def test_send_birthday_report_email_downloads_stored_s3_image_with_get_object(
     monkeypatch,
     settings,
 ):
     """Re-sends should attach S3 images without opening the Django field file."""
-    class PresignedS3Storage(S3Storage):
-        """S3 storage double that provides a deterministic signed URL."""
+    class SourceFile:
+        """S3 response body that records closure."""
 
-        def url(self, name, parameters=None, expire=None, http_method=None):
-            """Return a signed URL without creating an S3 connection."""
-            return f"https://s3.example.com/{name}?signature=example"
-
-    class Response:
-        """HTTP response double for a presigned image GET."""
-
-        def __enter__(self):
-            """Return the open response body."""
-            return self
-
-        def __exit__(self, exc_type, exc_value, traceback):
-            """Close the response context."""
+        def __init__(self):
+            """Initialize the response body state."""
+            self.closed = False
 
         def read(self):
             """Return the downloaded report bytes."""
             return b"stored-jpeg-content"
 
+        def close(self):
+            """Record that the response body was closed."""
+            self.closed = True
+
+    class S3Client:
+        """S3 client double that records object downloads."""
+
+        def __init__(self, source_file):
+            """Configure the response body returned by GetObject."""
+            self.source_file = source_file
+            self.calls = []
+
+        def get_object(self, **kwargs):
+            """Return a GetObject-like response."""
+            self.calls.append(kwargs)
+            return {"Body": self.source_file}
+
+    class DirectS3Storage(S3Storage):
+        """S3 storage double that needs no network configuration."""
+
+        def _normalize_name(self, name):
+            """Return the expected media-prefixed object key."""
+            return f"media/{name}"
+
+        @property
+        def connection(self):
+            """Return the configured S3 client double."""
+            return self._connection
+
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-    storage = object.__new__(PresignedS3Storage)
+    source_file = SourceFile()
+    client = S3Client(source_file)
+    storage = object.__new__(DirectS3Storage)
+    storage.bucket_name = "mdc-media"
+    storage._connection = SimpleNamespace(meta=SimpleNamespace(client=client))
     monkeypatch.setattr(BirthdayReport._meta.get_field("image"), "storage", storage)
     report = BirthdayReport.objects.create(
         period_start=date(2026, 7, 20),
@@ -74,26 +98,20 @@ def test_send_birthday_report_email_downloads_stored_s3_image_with_presigned_get
         recipients=["leader@example.com"],
     )
     report.image.name = "birthday_reports/2026/07/aniversariantes.jpg"
-    captured = {}
-
-    def fake_urlopen(url, *, timeout):
-        """Capture the signed URL used to download the attachment."""
-        captured["url"] = url
-        captured["timeout"] = timeout
-        return Response()
-
     def unexpected_open(mode):
         """Fail if re-send attempts a HeadObject-backed storage read."""
         raise AssertionError("S3 re-send should use the presigned URL")
 
-    monkeypatch.setattr(emails, "urlopen", fake_urlopen)
     monkeypatch.setattr(report.image, "open", unexpected_open)
 
     emails.send_birthday_report_email(report)
 
-    assert captured == {
-        "url": f"https://s3.example.com/{report.image.name}?signature=example",
-        "timeout": emails.REPORT_IMAGE_DOWNLOAD_TIMEOUT,
-    }
+    assert client.calls == [
+        {
+            "Bucket": "mdc-media",
+            "Key": f"media/{report.image.name}",
+        }
+    ]
+    assert source_file.closed is True
     _filename, content, _mimetype = mail.outbox[0].attachments[0]
     assert content == b"stored-jpeg-content"

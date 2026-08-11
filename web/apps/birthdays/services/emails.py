@@ -1,14 +1,9 @@
 """E-mail services for birthday reports."""
 
-from urllib.request import urlopen
-
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
 from storages.backends.s3 import S3Storage
-
-
-REPORT_IMAGE_DOWNLOAD_TIMEOUT = 15
 
 
 class BirthdayReportEmailError(Exception):
@@ -39,9 +34,17 @@ def sanitize_exception_message(exc):
 
 def _read_stored_report_image(report):
     """Read a stored report image without a HeadObject request in S3."""
-    if isinstance(report.image.storage, S3Storage):
-        with urlopen(report.image.url, timeout=REPORT_IMAGE_DOWNLOAD_TIMEOUT) as response:
-            return response.read()
+    storage = report.image.storage
+    if isinstance(storage, S3Storage):
+        response = storage.connection.meta.client.get_object(
+            Bucket=storage.bucket_name,
+            Key=storage._normalize_name(report.image.name),
+        )
+        source_file = response["Body"]
+        try:
+            return source_file.read()
+        finally:
+            source_file.close()
 
     report.image.open("rb")
     try:
