@@ -5,6 +5,7 @@ import re
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -45,11 +46,14 @@ def member_list(request):
 
         members = members.filter(search_filter).distinct()
 
+    paginator = Paginator(members, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     return render(
         request,
         "members/member_list.html",
         {
-            "members": members,
+            "page_obj": page_obj,
             "query": query,
         },
     )

@@ -177,6 +177,30 @@ def test_member_list_renders_photo_and_avatar_fallback(
 
 
 @pytest.mark.django_db
+def test_member_list_paginates_and_preserves_search_query(client, django_user_model):
+    """Members list should paginate filtered results and retain the search term."""
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    members = [
+        Member(name=f"Membro {number:02d}")
+        for number in range(1, 22)
+    ]
+    Member.objects.bulk_create(members)
+
+    response = client.get(reverse("members:list"), {"q": "Membro", "page": 2})
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "Membro 21" in content
+    assert "Membro 01" not in content
+    assert response.context["page_obj"].start_index() == 21
+    assert response.context["page_obj"].end_index() == 21
+    assert response.context["page_obj"].paginator.count == 21
+    assert "Página 2 de 2" in content
+    assert "?q=Membro&amp;page=1" in content
+
+
+@pytest.mark.django_db
 def test_member_detail_renders_member_registration(
     rf,
     django_user_model,

@@ -44,7 +44,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
-              {% for member in members %}
+              {% for member in page_obj %}
                 <tr class="align-top hover:bg-slate-50/70">
                   <td class="px-5 py-4">
                     <div class="flex items-start gap-3">
@@ -126,6 +126,28 @@
             </tbody>
           </table>
         </div>
+        {% if page_obj.paginator.num_pages > 1 %}
+          <div class="flex flex-col items-center gap-4 border-t border-slate-200 px-5 py-4 sm:flex-row sm:justify-between">
+            <p class="text-sm text-slate-600">
+              Exibindo <span class="font-semibold text-slate-950">{{ page_obj.start_index }}</span> a <span class="font-semibold text-slate-950">{{ page_obj.end_index }}</span> de <span class="font-semibold text-slate-950">{{ page_obj.paginator.count }}</span> membros
+            </p>
+            <nav aria-label="Paginação de membros">
+              <div class="inline-flex -space-x-px text-sm">
+                {% if page_obj.has_previous %}
+                  <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" class="inline-flex items-center rounded-l-lg border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-100">Anterior</a>
+                {% else %}
+                  <span aria-disabled="true" class="inline-flex cursor-not-allowed items-center rounded-l-lg border border-slate-200 bg-slate-50 px-3 py-2 font-medium text-slate-400">Anterior</span>
+                {% endif %}
+                <span aria-current="page" class="inline-flex items-center border border-slate-300 bg-blue-50 px-3 py-2 font-medium text-blue-700">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                  <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}" class="inline-flex items-center rounded-r-lg border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-100">Próxima</a>
+                {% else %}
+                  <span aria-disabled="true" class="inline-flex cursor-not-allowed items-center rounded-r-lg border border-slate-200 bg-slate-50 px-3 py-2 font-medium text-slate-400">Próxima</span>
+                {% endif %}
+              </div>
+            </nav>
+          </div>
+        {% endif %}
       </div>
     </div>
   </section>
