@@ -49,9 +49,9 @@ def _member_post_data(**overrides):
             Member.Classification.VOLUNTEER,
         ],
         "cpf": "123.456.789-00",
-        "birth_date": "1990-01-02",
-        "baptism_date": "2001-02-03",
-        "acclamation_date": "2020-04-05",
+        "birth_date": "02/01/1990",
+        "baptism_date": "03/02/2001",
+        "acclamation_date": "05/04/2020",
         "include_in_birthday_list": "on",
         "sex": Member.Sex.FEMALE,
         "birthplace": "Sao Paulo SP",
@@ -123,6 +123,7 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
     user = _create_user(django_user_model)
     matching_member = Member.objects.create(
         name="Maria Silva",
+        birth_date="1990-01-02",
         email="maria@example.com",
         cpf="12345678900",
         profession="Medica",
@@ -141,6 +142,7 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
     assert response.status_code == 200
     assert template_names == ["members/member_list.html"]
     assert matching_member.name.encode() in response.content
+    assert "02/01/1990" in response.content.decode()
     assert other_member.name.encode() not in response.content
 
 
@@ -225,6 +227,9 @@ def test_member_detail_renders_member_registration(
     assert "Maria Silva" in content
     assert "12345678900" in content
     assert "02/01/1990" in content
+    assert "03/02/2001" in content
+    assert "05/04/2020" in content
+    assert "07/06/2015" in content
     assert "Professora" in content
     assert "Sao Paulo" in content
     assert "Rua Central" in content
@@ -338,6 +343,9 @@ def test_member_form_renders_native_and_alpine_validation(
     assert 'id="id_phone-client-error"' in content
     assert ':required="!isActive"' in content
     assert 'id="id_inactive_reason-client-error"' in content
+    assert 'name="birth_date"' in content
+    assert 'placeholder="dd/mm/aaaa"' in content
+    assert r'pattern="\d{2}/\d{2}/\d{4}"' in content
 
 
 @pytest.mark.django_db
@@ -352,6 +360,7 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert response.headers["Location"] == reverse("members:list")
     member = Member.objects.get(name="Maria Silva")
     assert member.cpf == "12345678900"
+    assert member.birth_date.isoformat() == "1990-01-02"
     assert member.baptism_date.isoformat() == "2001-02-03"
     assert member.acclamation_date.isoformat() == "2020-04-05"
     assert member.registration_type == Member.RegistrationType.MEMBER
@@ -469,7 +478,13 @@ def test_member_update_page_renders_for_authenticated_user(
 ):
     """Authenticated users should be able to access the member update form."""
     user = _create_user(django_user_model)
-    member = Member.objects.create(name="Maria Silva")
+    member = Member.objects.create(
+        name="Maria Silva",
+        birth_date="1990-01-02",
+        baptism_date="2001-02-03",
+        acclamation_date="2020-04-05",
+        marriage_date="2015-06-07",
+    )
     template_names = _record_rendered_templates(monkeypatch)
     request = _attach_request_state(
         rf.get(reverse("members:update", args=[member.pk])),
@@ -477,9 +492,19 @@ def test_member_update_page_renders_for_authenticated_user(
     )
 
     response = member_views.MemberUpdateView.as_view()(request, pk=member.pk)
+    content = response.content.decode()
 
     assert response.status_code == 200
     assert template_names == ["members/member_form.html"]
+    assert 'name="birth_date"' in content
+    assert 'value="02/01/1990"' in content
+    assert 'name="baptism_date"' in content
+    assert 'value="03/02/2001"' in content
+    assert 'name="acclamation_date"' in content
+    assert 'value="05/04/2020"' in content
+    assert 'name="marriage_date"' in content
+    assert 'value="07/06/2015"' in content
+    assert 'type="date"' not in content
 
 
 @pytest.mark.django_db

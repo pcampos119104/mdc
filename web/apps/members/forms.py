@@ -21,6 +21,20 @@ MEMBER_PHOTO_ALLOWED_CONTENT_TYPES = {
 }
 
 
+def _brazilian_date_input():
+    """Return a date widget that displays and submits dates as dd/mm/yyyy."""
+    return forms.DateInput(
+        attrs={
+            "autocomplete": "off",
+            "inputmode": "numeric",
+            "pattern": r"\d{2}/\d{2}/\d{4}",
+            "placeholder": "dd/mm/aaaa",
+            "title": "Informe uma data no formato dd/mm/aaaa.",
+        },
+        format="%d/%m/%Y",
+    )
+
+
 class MemberForm(forms.ModelForm):
     """Validate the main registration data for a member."""
 
@@ -110,32 +124,20 @@ class MemberForm(forms.ModelForm):
         widgets = {
             "photo": forms.FileInput(attrs={"accept": "image/*"}),
             "registration_type": forms.Select,
-            "birth_date": forms.DateInput(
-                attrs={"type": "date"},
-                format="%Y-%m-%d",
-            ),
-            "baptism_date": forms.DateInput(
-                attrs={"type": "date"},
-                format="%Y-%m-%d",
-            ),
-            "acclamation_date": forms.DateInput(
-                attrs={"type": "date"},
-                format="%Y-%m-%d",
-            ),
-            "marriage_date": forms.DateInput(
-                attrs={"type": "date"},
-                format="%Y-%m-%d",
-            ),
+            "birth_date": _brazilian_date_input(),
+            "baptism_date": _brazilian_date_input(),
+            "acclamation_date": _brazilian_date_input(),
+            "marriage_date": _brazilian_date_input(),
             "inactive_reason": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):
-        """Configure date parsing for browser date inputs."""
+        """Configure date parsing for Brazilian date inputs."""
         super().__init__(*args, **kwargs)
-        self.fields["birth_date"].input_formats = ["%Y-%m-%d"]
-        self.fields["baptism_date"].input_formats = ["%Y-%m-%d"]
-        self.fields["acclamation_date"].input_formats = ["%Y-%m-%d"]
-        self.fields["marriage_date"].input_formats = ["%Y-%m-%d"]
+        self.fields["birth_date"].input_formats = ["%d/%m/%Y"]
+        self.fields["baptism_date"].input_formats = ["%d/%m/%Y"]
+        self.fields["acclamation_date"].input_formats = ["%d/%m/%Y"]
+        self.fields["marriage_date"].input_formats = ["%d/%m/%Y"]
 
     def clean_photo(self):
         """Accept only reasonably sized image uploads for member photos."""

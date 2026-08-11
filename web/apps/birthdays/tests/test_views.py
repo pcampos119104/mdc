@@ -127,9 +127,12 @@ def test_birthday_history_lists_latest_five_reports(client, django_user_model):
         )
 
     response = client.get(reverse("birthdays:history"))
+    content = response.content.decode()
 
     assert response.status_code == 200
     assert response.content.count(b"aniversariante(s)") == 5
+    assert "06/07/2026 a 12/07/2026" in content
+    assert "2026-07-06" not in content
 
 
 @pytest.mark.django_db

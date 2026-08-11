@@ -23,12 +23,9 @@
             type="{{ input_type }}"
             name="{{ field.html_name }}"
             id="{{ field.id_for_label }}"
-            {# Formata datas do Django no valor aceito pelo input date. #}
-            {% if input_type == "date" %}
-                value="{{ field.value|date:'Y-m-d'|default:field.value|default_if_none:'' }}"
-            {% elif input_type == "file" %}
+            {% if input_type == "file" %}
             {% else %}
-                value="{{ field.value|default_if_none:'' }}"
+                value="{{ field.value|date:'d/m/Y'|default:field.value|default_if_none:'' }}"
             {% endif %}
             {# Usa placeholder passado ao componente ou configurado no widget. #}
             {% if placeholder %}

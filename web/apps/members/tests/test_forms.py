@@ -38,8 +38,8 @@ def test_member_form_normalizes_masked_cpf():
                 Member.Classification.VOLUNTEER,
             ],
             "cpf": "123.456.789-01",
-            "baptism_date": "2001-02-03",
-            "acclamation_date": "2020-04-05",
+            "baptism_date": "03/02/2001",
+            "acclamation_date": "05/04/2020",
             "profession": "Professora",
             "phone": "(11) 99999-9999",
             "sex": Member.Sex.FEMALE,
@@ -62,6 +62,36 @@ def test_member_form_normalizes_masked_cpf():
         Member.Classification.WOMEN,
         Member.Classification.VOLUNTEER,
     ]
+
+
+def test_member_form_renders_date_initial_values_as_brazilian_format():
+    """Member form should render date initial values as dd/mm/yyyy."""
+    member = Member(
+        birth_date=date(1990, 1, 2),
+        baptism_date=date(2001, 2, 3),
+        acclamation_date=date(2020, 4, 5),
+        marriage_date=date(2015, 6, 7),
+    )
+    form = MemberForm(instance=member)
+
+    assert 'value="02/01/1990"' in form["birth_date"].as_widget()
+    assert 'value="03/02/2001"' in form["baptism_date"].as_widget()
+    assert 'value="05/04/2020"' in form["acclamation_date"].as_widget()
+    assert 'value="07/06/2015"' in form["marriage_date"].as_widget()
+
+
+def test_member_form_rejects_iso_date_format():
+    """Member form should require dates submitted as dd/mm/yyyy."""
+    form = MemberForm(
+        data={
+            "name": "Maria Silva",
+            "registration_type": Member.RegistrationType.MEMBER,
+            "birth_date": "1990-01-02",
+        }
+    )
+
+    assert not form.is_valid()
+    assert "birth_date" in form.errors
 
 
 def test_member_form_requires_registration_type():
