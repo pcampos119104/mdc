@@ -24,7 +24,7 @@
           <ul role="list" class="divide-y divide-slate-200">
             {% for entry in entries %}
               <li class="member-row flex items-center gap-5 border-b border-slate-200 py-5">
-                <img src="{{ entry.photo_data_url }}" alt="Foto de {{ entry.name }}" class="h-24 w-24 shrink-0 rounded-2xl object-cover ring-4 ring-blue-50">
+                <img src="{{ entry.photo_url }}" alt="Foto de {{ entry.name }}" class="h-24 w-24 shrink-0 rounded-2xl object-cover ring-4 ring-blue-50">
                 <div class="min-w-0 flex-1">
                   <p class="member-name text-3xl font-black leading-tight tracking-tight text-slate-950">{{ entry.name }}</p>
                   <p class="mt-2 text-xl font-semibold text-blue-700">{{ entry.birthday_occurrence|date:"d/m" }}</p>

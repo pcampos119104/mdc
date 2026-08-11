@@ -178,6 +178,10 @@ during build with:
 playwright install --with-deps chromium
 ```
 
+When a member has a photo, the temporary HTML used by Playwright references the
+same short-lived presigned URL used by the member list. The generated JPEG stores
+only rendered pixels, never the URL or its signature.
+
 The entrypoint remains responsible only for normal container startup and optional
 migrations; it does not run the birthday scheduler.
 

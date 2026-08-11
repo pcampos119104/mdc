@@ -1,17 +1,10 @@
 """HTML to JPEG rendering service for birthday reports."""
 
 import base64
-from io import BytesIO
 from pathlib import Path
 
 from django.conf import settings
 from django.template.loader import render_to_string
-from PIL import Image, ImageOps
-
-
-BIRTHDAY_PHOTO_MAX_DIMENSION = 256
-BIRTHDAY_PHOTO_MAX_SOURCE_SIZE = 5 * 1024 * 1024
-BIRTHDAY_PHOTO_JPEG_QUALITY = 85
 
 
 DEFAULT_PHOTO_SVG = """
@@ -35,74 +28,13 @@ def _read_tailwind_css():
     return css_path.read_text(encoding="utf-8")
 
 
-def _file_to_data_url(field_file):
-    """Return a data URL for a Django file field or a default image."""
-    if not field_file:
-        return DEFAULT_PHOTO_DATA_URL
-
-    try:
-        field_file.open("rb")
-        content = field_file.read(BIRTHDAY_PHOTO_MAX_SOURCE_SIZE + 1)
-    except Exception:
-        return DEFAULT_PHOTO_DATA_URL
-    finally:
-        try:
-            field_file.close()
-        except Exception:
-            pass
-
-    if len(content) > BIRTHDAY_PHOTO_MAX_SOURCE_SIZE:
-        return DEFAULT_PHOTO_DATA_URL
-
-    try:
-        return _image_content_to_data_url(content)
-    except Exception:
-        return DEFAULT_PHOTO_DATA_URL
-
-
-def _image_content_to_data_url(content):
-    """Return a small JPEG data URL for image bytes."""
-    with Image.open(BytesIO(content)) as image:
-        image = ImageOps.exif_transpose(image)
-        image.thumbnail(
-            (BIRTHDAY_PHOTO_MAX_DIMENSION, BIRTHDAY_PHOTO_MAX_DIMENSION),
-            Image.Resampling.LANCZOS,
-        )
-        image = _to_rgb_image(image)
-
-        output = BytesIO()
-        image.save(
-            output,
-            format="JPEG",
-            quality=BIRTHDAY_PHOTO_JPEG_QUALITY,
-            optimize=True,
-        )
-
-    encoded = base64.b64encode(output.getvalue()).decode("ascii")
-    return f"data:image/jpeg;base64,{encoded}"
-
-
-def _to_rgb_image(image):
-    """Return an RGB image suitable for JPEG report embedding."""
-    if image.mode == "RGB":
-        return image
-
-    if image.mode in {"RGBA", "LA"} or "transparency" in image.info:
-        image = image.convert("RGBA")
-        background = Image.new("RGB", image.size, (255, 255, 255))
-        background.paste(image, mask=image.getchannel("A"))
-        return background
-
-    return image.convert("RGB")
-
-
 def build_birthday_image_entries(members):
-    """Return template entries with embedded photo data URLs."""
+    """Return template entries with presigned photo URLs or a default image."""
     return [
         {
             "name": member.name,
             "birthday_occurrence": member.birthday_occurrence,
-            "photo_data_url": _file_to_data_url(member.photo),
+            "photo_url": member.photo.url if member.photo else DEFAULT_PHOTO_DATA_URL,
         }
         for member in members
     ]
