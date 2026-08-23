@@ -10,7 +10,10 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-install-project && \
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y poppler-utils && \
+    rm -rf /var/lib/apt/lists/* && \
+    uv sync --frozen --no-dev --no-install-project && \
     playwright install --with-deps chromium
 
 COPY . .

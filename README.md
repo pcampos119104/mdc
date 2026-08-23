@@ -99,6 +99,47 @@ Build the production image locally:
 just prod-build
 ```
 
+## Legacy member consolidation
+
+Generate reviewable fixture artifacts without running migrations or writing to
+the database:
+
+```bash
+docker compose run --rm \
+  -e DJANGO_RUN_MIGRATIONS=false \
+  web uv run python manage.py consolidate_legacy_members \
+  --spreadsheet extras/source.xlsx \
+  --pdf-dir extras/pdf \
+  --output-dir extras/output \
+  --pk-base 1000000
+```
+
+The output directory must be empty. Review `consolidation_report.json` and
+`consolidation_summary.json` before importing anything. Confirm that the member
+PK range recorded under `fixture_identity` is free in the destination database;
+`loaddata` can update an existing member with the same explicit PK. Existing
+CPFs must also be checked because the model enforces their uniqueness.
+
+Load the approved fixture as a separate operation:
+
+```bash
+just mng loaddata extras/output/members_fixture.json
+```
+
+The fixture intentionally leaves `photo` empty. After loading it, validate the
+staged-photo association without writes:
+
+```bash
+just mng upload_legacy_member_photos \
+  --manifest extras/output/photo_manifest.json \
+  --photos-dir extras/output/staged_photos \
+  --dry-run
+```
+
+Inspect `photo_upload_report.json`, then repeat without `--dry-run` to upload
+the approved photos through the configured Django storage. Existing member
+photos are preserved unless `--replace` is supplied explicitly.
+
 ## Container startup
 
 The Docker images use `web/entrypoint.sh` before the configured container
