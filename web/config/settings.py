@@ -180,6 +180,7 @@ def media_storage_config():
         "querystring_auth": True,
         "querystring_expire": parse_int_env("AWS_QUERYSTRING_EXPIRE", 300),
         "default_acl": None,
+        "file_overwrite": True,
         "location": MEDIA_LOCATION,
         "client_config": Config(
             connect_timeout=parse_int_env("AWS_S3_CONNECT_TIMEOUT", 5),

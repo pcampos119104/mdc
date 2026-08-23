@@ -6,13 +6,16 @@ import stat
 from datetime import date
 from io import BytesIO, StringIO
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from botocore.exceptions import ClientError
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from PIL import Image, ImageFile
+from storages.backends.s3 import S3Storage
 
 from apps.members.management.commands import upload_legacy_member_photos as uploader
 from apps.members.models import Member
@@ -76,6 +79,145 @@ def _read_report(manifest_path, report_path=None):
     """Return the parsed audit report and its resolved local path."""
     report_path = report_path or manifest_path.parent / "photo_upload_report.json"
     return json.loads(report_path.read_text(encoding="utf-8")), report_path
+
+
+class _S3ResponseBody:
+    """Minimal S3 response body used to test the legacy uploader."""
+
+    def __init__(self, content):
+        """Store content and track body closure."""
+        self._content = BytesIO(content)
+        self.closed = False
+
+    def read(self, size=-1):
+        """Read content in the same shape as a botocore streaming body."""
+        return self._content.read(size)
+
+    def close(self):
+        """Record closure of the response stream."""
+        self.closed = True
+
+
+class _S3Client:
+    """Configurable S3 client double that supports only GetObject."""
+
+    def __init__(self, responses):
+        """Store queued GetObject results or exceptions."""
+        self._responses = iter(responses)
+        self.calls = []
+
+    def get_object(self, **kwargs):
+        """Return the next configured object response."""
+        self.calls.append(kwargs)
+        response = next(self._responses)
+        if isinstance(response, Exception):
+            raise response
+        return {"Body": response}
+
+
+class _S3Storage(S3Storage):
+    """S3 storage double that fails if the uploader performs HeadObject-backed work."""
+
+    def _normalize_name(self, name):
+        """Return the media-prefixed S3 object key."""
+        return f"media/{name}"
+
+    @property
+    def connection(self):
+        """Return the configured fake S3 client."""
+        return self._connection
+
+    def exists(self, name):
+        """Fail if the uploader attempts a HeadObject-backed existence check."""
+        raise AssertionError("S3 photo upload must not call storage.exists()")
+
+    def open(self, name, mode="rb"):
+        """Fail if the uploader attempts a HeadObject-backed file open."""
+        raise AssertionError("S3 photo upload must not call storage.open()")
+
+    def save(self, name, content, max_length=None):
+        """Record a deterministic S3 upload without an S3 connection."""
+        self.saved_files.append((name, content.read()))
+        return name
+
+    def delete(self, name):
+        """Record S3 object cleanup without an S3 connection."""
+        self.deleted_names.append(name)
+
+
+def _s3_storage(client):
+    """Return an S3 storage double configured with the supplied client."""
+    storage = object.__new__(_S3Storage)
+    storage.bucket_name = "mdc-media"
+    storage._connection = SimpleNamespace(meta=SimpleNamespace(client=client))
+    storage.saved_files = []
+    storage.deleted_names = []
+    return storage
+
+
+def _s3_not_found():
+    """Return the ClientError RustFS should use for a missing object GET."""
+    return ClientError(
+        {
+            "Error": {"Code": "NoSuchKey", "Message": "Not Found"},
+            "ResponseMetadata": {"HTTPStatusCode": 404},
+        },
+        "GetObject",
+    )
+
+
+def test_stage_photo_uses_get_object_before_uploading_to_s3():
+    """S3 staging should upload missing files without a HeadObject probe."""
+    photo_bytes = _jpeg_bytes()
+    digest = hashlib.sha256(photo_bytes).hexdigest()
+    target_name = f"members/legacy/1-{digest[:12]}.jpg"
+    client = _S3Client([_s3_not_found()])
+    storage = _s3_storage(client)
+
+    uploaded = uploader._stage_photo(storage, target_name, photo_bytes, digest)
+
+    assert uploaded is True
+    assert client.calls == [
+        {
+            "Bucket": "mdc-media",
+            "Key": f"media/{target_name}",
+        }
+    ]
+    assert storage.saved_files == [(target_name, photo_bytes)]
+
+
+def test_stage_photo_reuses_matching_s3_file_without_head_object():
+    """S3 staging should hash existing files from a GetObject stream."""
+    photo_bytes = _jpeg_bytes()
+    digest = hashlib.sha256(photo_bytes).hexdigest()
+    target_name = f"members/legacy/1-{digest[:12]}.jpg"
+    source_file = _S3ResponseBody(photo_bytes)
+    client = _S3Client([source_file])
+    storage = _s3_storage(client)
+
+    uploaded = uploader._stage_photo(storage, target_name, photo_bytes, digest)
+
+    assert uploaded is False
+    assert storage.saved_files == []
+    assert source_file.closed is True
+
+
+def test_cleanup_storage_file_confirms_s3_removal_with_get_object():
+    """S3 cleanup should confirm absence with GetObject instead of HeadObject."""
+    target_name = "members/legacy/1-photo.jpg"
+    client = _S3Client([_s3_not_found()])
+    storage = _s3_storage(client)
+
+    cleaned = uploader._cleanup_storage_file(storage, target_name)
+
+    assert cleaned is True
+    assert storage.deleted_names == [target_name]
+    assert client.calls == [
+        {
+            "Bucket": "mdc-media",
+            "Key": f"media/{target_name}",
+        }
+    ]
 
 
 @pytest.mark.django_db

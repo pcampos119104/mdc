@@ -12,10 +12,12 @@ from datetime import date
 from io import BytesIO
 from pathlib import Path
 
+from botocore.exceptions import ClientError
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from PIL import Image
+from storages.backends.s3 import S3Storage
 
 from apps.members.models import Member
 
@@ -183,10 +185,50 @@ def _storage_file_matches(storage, target_name, expected_sha256):
     return hmac.compare_digest(digest.hexdigest(), expected_sha256)
 
 
+def _s3_storage_file_matches(storage, target_name, expected_sha256):
+    """Return an S3 object's digest match, or None when it does not exist."""
+    try:
+        response = storage.connection.meta.client.get_object(
+            Bucket=storage.bucket_name,
+            Key=storage._normalize_name(target_name),
+        )
+    except ClientError as exc:
+        if exc.response["ResponseMetadata"]["HTTPStatusCode"] == 404:
+            return None
+        raise
+
+    digest = hashlib.sha256()
+    source_file = response["Body"]
+    try:
+        while chunk := source_file.read(1024 * 1024):
+            digest.update(chunk)
+    finally:
+        source_file.close()
+    return hmac.compare_digest(digest.hexdigest(), expected_sha256)
+
+
+def _s3_storage_object_exists(storage, name):
+    """Return whether an S3 object exists using GetObject instead of HeadObject."""
+    try:
+        response = storage.connection.meta.client.get_object(
+            Bucket=storage.bucket_name,
+            Key=storage._normalize_name(name),
+        )
+    except ClientError as exc:
+        if exc.response["ResponseMetadata"]["HTTPStatusCode"] == 404:
+            return False
+        raise
+
+    response["Body"].close()
+    return True
+
+
 def _cleanup_storage_file(storage, name):
     """Delete a newly written object and report whether it is now absent."""
     try:
         storage.delete(name)
+        if isinstance(storage, S3Storage):
+            return not _s3_storage_object_exists(storage, name)
         return not storage.exists(name)
     except Exception:
         return False
@@ -195,8 +237,23 @@ def _cleanup_storage_file(storage, name):
 def _stage_photo(storage, target_name, photo_bytes, expected_sha256):
     """Ensure validated bytes exist at the deterministic storage target."""
     try:
-        if storage.exists(target_name):
-            if not _storage_file_matches(storage, target_name, expected_sha256):
+        if isinstance(storage, S3Storage):
+            existing_matches = _s3_storage_file_matches(
+                storage,
+                target_name,
+                expected_sha256,
+            )
+        elif storage.exists(target_name):
+            existing_matches = _storage_file_matches(
+                storage,
+                target_name,
+                expected_sha256,
+            )
+        else:
+            existing_matches = None
+
+        if existing_matches is not None:
+            if not existing_matches:
                 raise EntryFailure("storage_hash_mismatch")
             return False
 
@@ -209,9 +266,21 @@ def _stage_photo(storage, target_name, photo_bytes, expected_sha256):
 
         if not _cleanup_storage_file(storage, saved_name):
             raise EntryFailure("storage_renamed_output_cleanup_failed")
-        if storage.exists(target_name) and _storage_file_matches(
-            storage, target_name, expected_sha256
-        ):
+        if isinstance(storage, S3Storage):
+            target_matches = _s3_storage_file_matches(
+                storage,
+                target_name,
+                expected_sha256,
+            )
+        elif storage.exists(target_name):
+            target_matches = _storage_file_matches(
+                storage,
+                target_name,
+                expected_sha256,
+            )
+        else:
+            target_matches = None
+        if target_matches:
             return False
         raise EntryFailure("storage_target_conflict")
     except EntryFailure:

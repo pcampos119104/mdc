@@ -49,6 +49,7 @@ def test_media_storage_uses_private_s3_when_enabled(monkeypatch):
         "querystring_auth": True,
         "querystring_expire": 300,
         "default_acl": None,
+        "file_overwrite": True,
         "location": "media",
     }
     assert client_config.connect_timeout == 4
