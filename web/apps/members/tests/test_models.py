@@ -52,6 +52,7 @@ def test_member_can_be_created_with_initial_fields():
 
     member.full_clean()
     assert member.pk is not None
+    assert member.is_church_member is True
     assert member.baptism_date == date(1999, 6, 12)
     assert member.acclamation_date == date(2020, 8, 9)
     assert member.is_active is True
@@ -61,6 +62,19 @@ def test_member_can_be_created_with_initial_fields():
     assert member.get_registration_type_display() == "Liderança"
     assert member.get_classifications_display() == "Louvor, Pastoral, Voluntário"
     assert str(member) == member.name
+
+
+@pytest.mark.django_db
+def test_member_record_can_represent_a_non_member():
+    """Member records should also store people who are not church members."""
+    person = Member.objects.create(
+        name="Visitante da Campanha",
+        is_church_member=False,
+    )
+
+    person.full_clean()
+
+    assert person.is_church_member is False
 
 
 @pytest.mark.django_db
@@ -189,6 +203,10 @@ def test_member_can_be_soft_deleted_restored_and_hard_deleted():
 def test_member_fields_expose_help_texts():
     """Important member fields should expose Portuguese helper texts."""
     assert Member._meta.get_field("name").help_text == "Nome completo do membro."
+    assert (
+        Member._meta.get_field("is_church_member").help_text
+        == "Indica se a pessoa é membro da igreja."
+    )
     assert (
         Member._meta.get_field("cpf").help_text
         == "CPF do membro com 11 dígitos, sem pontos ou traço."

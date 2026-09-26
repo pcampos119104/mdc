@@ -21,6 +21,11 @@ def test_get_birthday_members_filters_valid_active_members_across_year_boundary(
         include_in_birthday_list=False,
     )
     Member.objects.create(name="Sem data")
+    Member.objects.create(
+        name="Participante externa",
+        birth_date=date(1990, 1, 2),
+        is_church_member=False,
+    )
     deleted_member = Member.objects.create(
         name="Removido",
         birth_date=date(1990, 12, 30),

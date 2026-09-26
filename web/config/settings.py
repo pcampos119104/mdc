@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "django_cotton",
     "storages",
     "apps.birthdays",
+    "apps.christmas",
     "apps.members",
 ]
 

@@ -147,6 +147,48 @@ def test_member_list_renders_and_filters_by_search(rf, django_user_model, monkey
 
 
 @pytest.mark.django_db
+def test_member_list_excludes_people_who_are_not_church_members(
+    client,
+    django_user_model,
+):
+    """Ordinary member searches should not expose Natal Feliz participants."""
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    member = Member.objects.create(name="Maria da Igreja")
+    non_member = Member.objects.create(
+        name="Maria Visitante",
+        is_church_member=False,
+    )
+
+    response = client.get(reverse("members:list"), {"q": "Maria"})
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert member.name in content
+    assert non_member.name not in content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("route_name", ["detail", "update", "remove"])
+def test_member_views_do_not_expose_people_who_are_not_church_members(
+    client,
+    django_user_model,
+    route_name,
+):
+    """Member management routes should reject non-member records."""
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    non_member = Member.objects.create(
+        name="Participante Externa",
+        is_church_member=False,
+    )
+
+    response = client.get(reverse(f"members:{route_name}", args=[non_member.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
 def test_member_list_renders_photo_and_avatar_fallback(
     rf,
     django_user_model,

@@ -100,6 +100,10 @@ class Member(SoftDeleteModel):
         WIDOWED = "widowed", "Viúvo(a)"
 
     name = models.CharField(max_length=255, help_text="Nome completo do membro.")
+    is_church_member = models.BooleanField(
+        default=True,
+        help_text="Indica se a pessoa é membro da igreja.",
+    )
     photo = models.ImageField(
         upload_to="members/%Y/%m/",
         blank=True,
