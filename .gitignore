@@ -16,3 +16,4 @@ web/staticfiles/
 web/db.sqlite3
 web/node_modules/
 web/mediafiles/
+/template-django
