@@ -1,0 +1,95 @@
+{% extends "base/_base.html" %}
+
+{% block title %}Natal Feliz | Comuna Bristol{% endblock %}
+
+{% block body_class %}bg-slate-50{% endblock %}
+
+{% block content %}
+  <section class="px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-blue-700">Campanha de Natal</p>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">{{ event.name }}</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600">{{ event.event_date|date:"d/m/Y" }} às {{ event.event_time|time:"H:i" }} — gerencie os padrinhos e as crianças participantes.</p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="{% url 'christmas:event_detail' event.pk %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Voltar ao evento</a>
+          <a href="{% url 'christmas:sponsorship_create' event.pk %}" class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Novo apadrinhamento</a>
+        </div>
+      </div>
+
+      <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end">
+          <div class="flex-1">
+            <label for="sponsorship-search" class="mb-2 block text-sm font-medium text-slate-900">Buscar apadrinhamentos</label>
+            <input type="search" id="sponsorship-search" name="q" value="{{ query }}" placeholder="Padrinho, criança ou mãe" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+          </div>
+          <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Buscar</button>
+          {% if query %}
+            <a href="{% url 'christmas:sponsorship_list' event.pk %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Limpar</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th scope="col" class="px-5 py-4 font-semibold">Criança</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Mãe</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Padrinho</th>
+                <th scope="col" class="px-5 py-4 text-right font-semibold">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              {% for sponsorship in page_obj %}
+                <tr class="align-top hover:bg-slate-50/70">
+                  <td class="px-5 py-4 font-semibold text-slate-950">{{ sponsorship.child.name }}</td>
+                  <td class="px-5 py-4">{{ sponsorship.child.mother_name }}</td>
+                  <td class="px-5 py-4">{{ sponsorship.sponsor.name }}</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex justify-end gap-2">
+                      <a href="{% url 'christmas:sponsorship_detail' event.pk sponsorship.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Ver</a>
+                      <a href="{% url 'christmas:sponsorship_update' event.pk sponsorship.pk %}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Editar</a>
+                      <a href="{% url 'christmas:sponsorship_remove' event.pk sponsorship.pk %}" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100">Remover</a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="px-5 py-12 text-center">
+                    <p class="text-base font-semibold text-slate-950">Nenhum apadrinhamento encontrado</p>
+                    <p class="mt-2 text-sm text-slate-500">Crie um novo apadrinhamento ou ajuste a busca.</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+          <div class="flex flex-col items-center gap-4 border-t border-slate-200 px-5 py-4 sm:flex-row sm:justify-between">
+            <p class="text-sm text-slate-600">Exibindo <span class="font-semibold text-slate-950">{{ page_obj.start_index }}</span> a <span class="font-semibold text-slate-950">{{ page_obj.end_index }}</span> de <span class="font-semibold text-slate-950">{{ page_obj.paginator.count }}</span> apadrinhamentos</p>
+            <nav aria-label="Paginação de apadrinhamentos">
+              <div class="inline-flex -space-x-px text-sm">
+                {% if page_obj.has_previous %}
+                  <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" class="inline-flex items-center rounded-l-lg border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-100">Anterior</a>
+                {% else %}
+                  <span aria-disabled="true" class="inline-flex cursor-not-allowed items-center rounded-l-lg border border-slate-200 bg-slate-50 px-3 py-2 font-medium text-slate-400">Anterior</span>
+                {% endif %}
+                <span aria-current="page" class="inline-flex items-center border border-slate-300 bg-blue-50 px-3 py-2 font-medium text-blue-700">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                  <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}" class="inline-flex items-center rounded-r-lg border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-100">Próxima</a>
+                {% else %}
+                  <span aria-disabled="true" class="inline-flex cursor-not-allowed items-center rounded-r-lg border border-slate-200 bg-slate-50 px-3 py-2 font-medium text-slate-400">Próxima</span>
+                {% endif %}
+              </div>
+            </nav>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

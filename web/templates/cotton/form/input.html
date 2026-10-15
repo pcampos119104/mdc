@@ -24,6 +24,8 @@
             name="{{ field.html_name }}"
             id="{{ field.id_for_label }}"
             {% if input_type == "file" %}
+            {% elif input_type == "time" %}
+                value="{{ field.value|time:'H:i'|default:field.value|default_if_none:'' }}"
             {% else %}
                 value="{{ field.value|date:'d/m/Y'|default:field.value|default_if_none:'' }}"
             {% endif %}
