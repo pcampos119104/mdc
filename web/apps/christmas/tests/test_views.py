@@ -25,6 +25,7 @@ def _create_child(**overrides):
         "name": "Ana Silva",
         "mother_name": "Maria Silva",
         "birth_date": date(2018, 5, 12),
+        "clothing_size": 8,
     }
     data.update(overrides)
     return Child.objects.create(**data)
@@ -583,6 +584,7 @@ def test_sponsorship_detail_and_update(client, django_user_model):
     detail_response = client.get(detail_url)
     assert detail_response.status_code == 200
     assert sponsorship.event.name in detail_response.content.decode()
+    assert "Tamanho da roupa" in detail_response.content.decode()
 
     update_response = client.post(
         reverse(
@@ -691,11 +693,13 @@ def test_child_list_renders_and_filters_by_child_or_mother_name(
         name="Ana Silva",
         mother_name="Maria Oliveira",
         birth_date=date(2018, 5, 12),
+        clothing_size=8,
     )
     other_child = Child.objects.create(
         name="Beatriz Souza",
         mother_name="Clara Souza",
         birth_date=date(2019, 6, 10),
+        clothing_size=10,
     )
 
     response = client.get(reverse("christmas:child_list"), {"q": "Oliveira"})
@@ -708,6 +712,7 @@ def test_child_list_renders_and_filters_by_child_or_mother_name(
     assert matching_child.name in content
     assert other_child.name not in content
     assert "12/05/2018" in content
+    assert "Tamanho da roupa" in content
     assert reverse("christmas:child_detail", args=[matching_child.pk]) in content
     assert reverse("christmas:child_update", args=[matching_child.pk]) in content
     assert reverse("christmas:child_remove", args=[matching_child.pk]) in content
@@ -755,6 +760,7 @@ def test_child_create_page_renders_form(client, django_user_model):
         template.name for template in response.templates if template.name
     ]
     assert 'name="birth_date"' in content
+    assert 'name="clothing_size"' in content
     assert 'placeholder="dd/mm/aaaa"' in content
 
 
@@ -770,6 +776,7 @@ def test_child_create_saves_and_redirects_to_list(client, django_user_model):
             "name": "Ana Silva",
             "mother_name": "Maria Silva",
             "birth_date": "12/05/2018",
+            "clothing_size": "8",
         },
         follow=True,
     )
@@ -780,6 +787,7 @@ def test_child_create_saves_and_redirects_to_list(client, django_user_model):
     assert "Criança Ana Silva cadastrada com sucesso." in response.content.decode()
     assert child.name == "Ana Silva"
     assert child.birth_date == date(2018, 5, 12)
+    assert child.clothing_size == 8
 
 
 @pytest.mark.django_db
@@ -790,7 +798,7 @@ def test_child_create_rejects_invalid_submission(client, django_user_model):
 
     response = client.post(
         reverse("christmas:child_create"),
-        {"name": "", "mother_name": "", "birth_date": ""},
+        {"name": "", "mother_name": "", "birth_date": "", "clothing_size": ""},
     )
 
     assert response.status_code == 200
@@ -815,6 +823,8 @@ def test_child_detail_renders_registration(client, django_user_model):
     assert child.name in content
     assert child.mother_name in content
     assert "12/05/2018" in content
+    assert "Tamanho da roupa" in content
+    assert ">8<" in content
     assert reverse("christmas:child_update", args=[child.pk]) in content
     assert reverse("christmas:child_remove", args=[child.pk]) in content
 
@@ -834,6 +844,8 @@ def test_child_update_renders_existing_data_and_saves_changes(
     get_content = get_response.content.decode()
     assert get_response.status_code == 200
     assert 'value="12/05/2018"' in get_content
+    assert 'name="clothing_size"' in get_content
+    assert 'value="8"' in get_content
     assert f"Editar {child.name}" in get_content
 
     post_response = client.post(
@@ -842,6 +854,7 @@ def test_child_update_renders_existing_data_and_saves_changes(
             "name": "Ana Silva Atualizada",
             "mother_name": "Maria Oliveira",
             "birth_date": "20/06/2018",
+            "clothing_size": "10",
         },
         follow=True,
     )
@@ -857,6 +870,7 @@ def test_child_update_renders_existing_data_and_saves_changes(
     assert child.name == "Ana Silva Atualizada"
     assert child.mother_name == "Maria Oliveira"
     assert child.birth_date == date(2018, 6, 20)
+    assert child.clothing_size == 10
 
 
 @pytest.mark.django_db
@@ -868,7 +882,7 @@ def test_child_update_rejects_invalid_submission(client, django_user_model):
 
     response = client.post(
         reverse("christmas:child_update", args=[child.pk]),
-        {"name": "", "mother_name": "", "birth_date": ""},
+        {"name": "", "mother_name": "", "birth_date": "", "clothing_size": ""},
     )
 
     child.refresh_from_db()

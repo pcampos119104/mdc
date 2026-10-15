@@ -9,7 +9,7 @@ from .models import Child, ChristmasEvent, ChristmasSponsorship
 class ChildAdmin(admin.ModelAdmin):
     """Admin interface for children participating in Natal Feliz."""
 
-    list_display = ("name", "mother_name", "birth_date")
+    list_display = ("name", "mother_name", "birth_date", "clothing_size")
     search_fields = ("name", "mother_name")
 
 

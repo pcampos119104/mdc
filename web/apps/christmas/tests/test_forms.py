@@ -21,12 +21,14 @@ def test_child_form_accepts_brazilian_date_and_saves_child():
             "name": "Ana Silva",
             "mother_name": "Maria Silva",
             "birth_date": "12/05/2018",
+            "clothing_size": "8",
         }
     )
 
     assert form.is_valid(), form.errors
     child = form.save()
     assert child.birth_date == date(2018, 5, 12)
+    assert child.clothing_size == 8
 
 
 def test_child_form_requires_all_fields_with_portuguese_messages():
@@ -37,6 +39,7 @@ def test_child_form_requires_all_fields_with_portuguese_messages():
     assert form.errors["name"] == ["Informe o nome da criança."]
     assert form.errors["mother_name"] == ["Informe o nome da mãe."]
     assert form.errors["birth_date"] == ["Informe a data de nascimento."]
+    assert form.errors["clothing_size"] == ["Informe o tamanho da roupa."]
 
 
 def test_child_form_rejects_invalid_birth_date():
@@ -46,6 +49,7 @@ def test_child_form_rejects_invalid_birth_date():
             "name": "Ana Silva",
             "mother_name": "Maria Silva",
             "birth_date": "31/02/2018",
+            "clothing_size": "8",
         }
     )
 
@@ -53,6 +57,21 @@ def test_child_form_rejects_invalid_birth_date():
     assert form.errors["birth_date"] == [
         "Informe uma data válida no formato dd/mm/aaaa."
     ]
+
+
+def test_child_form_rejects_non_numeric_clothing_size():
+    """Child form should accept only numeric clothing sizes."""
+    form = ChildForm(
+        data={
+            "name": "Ana Silva",
+            "mother_name": "Maria Silva",
+            "birth_date": "12/05/2018",
+            "clothing_size": "P",
+        }
+    )
+
+    assert not form.is_valid()
+    assert form.errors["clothing_size"] == ["Informe um tamanho de roupa válido."]
 
 
 @pytest.mark.django_db

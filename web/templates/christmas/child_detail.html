@@ -36,6 +36,10 @@
               <dt class="mb-2 block text-sm font-medium text-slate-900">Data de nascimento</dt>
               <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ child.birth_date|date:"d/m/Y" }}</dd>
             </div>
+            <div>
+              <dt class="mb-2 block text-sm font-medium text-slate-900">Tamanho da roupa</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ child.clothing_size|default_if_none:"Não informado" }}</dd>
+            </div>
           </dl>
         </div>
 

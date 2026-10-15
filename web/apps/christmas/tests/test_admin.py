@@ -17,7 +17,12 @@ def test_child_is_registered_in_admin():
     child_admin = site._registry[Child]
 
     assert isinstance(child_admin, ChildAdmin)
-    assert child_admin.list_display == ("name", "mother_name", "birth_date")
+    assert child_admin.list_display == (
+        "name",
+        "mother_name",
+        "birth_date",
+        "clothing_size",
+    )
     assert child_admin.search_fields == ("name", "mother_name")
 
 

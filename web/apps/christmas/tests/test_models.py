@@ -17,6 +17,7 @@ def test_child_can_be_created_with_required_fields():
         name="Ana Silva",
         mother_name="Maria Silva",
         birth_date=date(2018, 5, 12),
+        clothing_size=8,
     )
 
     child.full_clean()
@@ -25,18 +26,24 @@ def test_child_can_be_created_with_required_fields():
     assert child.name == "Ana Silva"
     assert child.mother_name == "Maria Silva"
     assert child.birth_date == date(2018, 5, 12)
+    assert child.clothing_size == 8
     assert str(child) == "Ana Silva"
 
 
 @pytest.mark.django_db
-def test_child_requires_name_mother_name_and_birth_date():
+def test_child_requires_all_registration_fields():
     """Child should require all initial campaign registration fields."""
-    child = Child(name="", mother_name="", birth_date=None)
+    child = Child(name="", mother_name="", birth_date=None, clothing_size=None)
 
     with pytest.raises(ValidationError) as exc_info:
         child.full_clean()
 
-    assert set(exc_info.value.message_dict) == {"name", "mother_name", "birth_date"}
+    assert set(exc_info.value.message_dict) == {
+        "name",
+        "mother_name",
+        "birth_date",
+        "clothing_size",
+    }
 
 
 @pytest.mark.django_db
@@ -69,6 +76,10 @@ def test_child_fields_expose_help_texts():
     assert (
         Child._meta.get_field("birth_date").help_text
         == "Data de nascimento da criança."
+    )
+    assert (
+        Child._meta.get_field("clothing_size").help_text
+        == "Número do tamanho da roupa usada pela criança."
     )
 
 

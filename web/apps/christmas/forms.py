@@ -34,14 +34,18 @@ class ChildForm(forms.ModelForm):
 
     class Meta:
         model = Child
-        fields = ["name", "mother_name", "birth_date"]
+        fields = ["name", "mother_name", "birth_date", "clothing_size"]
         labels = {
             "name": "Nome completo da criança",
             "mother_name": "Nome completo da mãe",
             "birth_date": "Data de nascimento",
+            "clothing_size": "Tamanho da roupa",
         }
         widgets = {
             "birth_date": _brazilian_date_input(),
+            "clothing_size": forms.NumberInput(
+                attrs={"inputmode": "numeric", "min": 0},
+            ),
         }
         error_messages = {
             "name": {"required": "Informe o nome da criança."},
@@ -49,6 +53,11 @@ class ChildForm(forms.ModelForm):
             "birth_date": {
                 "required": "Informe a data de nascimento.",
                 "invalid": "Informe uma data válida no formato dd/mm/aaaa.",
+            },
+            "clothing_size": {
+                "required": "Informe o tamanho da roupa.",
+                "invalid": "Informe um tamanho de roupa válido.",
+                "min_value": "Informe um tamanho de roupa válido.",
             },
         }
 

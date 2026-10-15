@@ -25,6 +25,10 @@ class Child(SoftDeleteModel):
     birth_date = models.DateField(
         help_text="Data de nascimento da criança.",
     )
+    clothing_size = models.PositiveSmallIntegerField(
+        null=True,
+        help_text="Número do tamanho da roupa usada pela criança.",
+    )
 
     class Meta:
         ordering = ["name"]
