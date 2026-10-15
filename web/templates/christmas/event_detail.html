@@ -29,6 +29,12 @@
             <dt class="mb-2 text-sm font-medium text-slate-900">Horário</dt>
             <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ event.event_time|time:"H:i" }}</dd>
           </div>
+          {% if event.label_note %}
+            <div class="sm:col-span-3">
+              <dt class="mb-2 text-sm font-medium text-slate-900">Observação da etiqueta</dt>
+              <dd class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-950">{{ event.label_note }}</dd>
+            </div>
+          {% endif %}
         </dl>
       </div>
       <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

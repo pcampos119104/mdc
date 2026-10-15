@@ -82,6 +82,7 @@ def test_event_form_accepts_brazilian_date_and_time():
             "name": "Natal Feliz 2026",
             "event_date": "20/12/2026",
             "event_time": "14:30",
+            "label_note": "Entregar o presente sem embalagem.",
         }
     )
 
@@ -89,6 +90,7 @@ def test_event_form_accepts_brazilian_date_and_time():
     event = form.save()
     assert event.event_date == date(2026, 12, 20)
     assert event.event_time.strftime("%H:%M") == "14:30"
+    assert event.label_note == "Entregar o presente sem embalagem."
 
 
 def test_event_form_requires_all_fields_with_portuguese_messages():
@@ -99,6 +101,23 @@ def test_event_form_requires_all_fields_with_portuguese_messages():
     assert form.errors["name"] == ["Informe o nome do evento."]
     assert form.errors["event_date"] == ["Informe a data do evento."]
     assert form.errors["event_time"] == ["Informe o horário do evento."]
+
+
+def test_event_form_rejects_label_note_longer_than_100_characters():
+    """Event form should enforce the printable note length in Portuguese."""
+    form = ChristmasEventForm(
+        data={
+            "name": "Natal Feliz 2026",
+            "event_date": "20/12/2026",
+            "event_time": "14:30",
+            "label_note": "a" * 101,
+        }
+    )
+
+    assert not form.is_valid()
+    assert form.errors["label_note"] == [
+        "A observação deve ter no máximo 100 caracteres."
+    ]
 
 
 @pytest.mark.django_db

@@ -113,7 +113,26 @@ def test_child_can_be_soft_deleted_restored_and_hard_deleted():
 
 @pytest.mark.django_db
 def test_event_persists_required_schedule_data():
-    """Event should persist its name, date, time, and readable representation."""
+    """Event should persist its schedule, label note, and readable representation."""
+    event = ChristmasEvent.objects.create(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time="14:30",
+        label_note="Entregar o presente sem embalagem.",
+    )
+
+    event.full_clean()
+
+    assert event.pk is not None
+    assert event.name == "Natal Feliz 2026"
+    assert event.event_date == date(2026, 12, 20)
+    assert event.label_note == "Entregar o presente sem embalagem."
+    assert str(event) == "Natal Feliz 2026"
+
+
+@pytest.mark.django_db
+def test_event_label_note_is_optional():
+    """Event should allow an empty label note for existing and new records."""
     event = ChristmasEvent.objects.create(
         name="Natal Feliz 2026",
         event_date=date(2026, 12, 20),
@@ -122,10 +141,7 @@ def test_event_persists_required_schedule_data():
 
     event.full_clean()
 
-    assert event.pk is not None
-    assert event.name == "Natal Feliz 2026"
-    assert event.event_date == date(2026, 12, 20)
-    assert str(event) == "Natal Feliz 2026"
+    assert event.label_note == ""
 
 
 @pytest.mark.django_db

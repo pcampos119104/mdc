@@ -51,6 +51,12 @@ class ChristmasEvent(models.Model):
     event_time = models.TimeField(
         help_text="Horário em que o evento será realizado.",
     )
+    label_note = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Observação opcional exibida nas etiquetas do evento.",
+    )
 
     class Meta:
         ordering = ["-event_date", "-event_time", "name"]

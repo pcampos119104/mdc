@@ -247,6 +247,7 @@ def test_event_create_renders_form_and_saves_event(client, django_user_model):
             "name": "Natal Feliz 2026",
             "event_date": "20/12/2026",
             "event_time": "14:30",
+            "label_note": "Entregar o presente sem embalagem.",
         },
         follow=True,
     )
@@ -255,6 +256,7 @@ def test_event_create_renders_form_and_saves_event(client, django_user_model):
     assert post_response.redirect_chain == [(reverse("christmas:event_list"), 302)]
     assert event.event_date == date(2026, 12, 20)
     assert event.event_time.strftime("%H:%M") == "14:30"
+    assert event.label_note == "Entregar o presente sem embalagem."
 
 
 @pytest.mark.django_db
@@ -275,7 +277,7 @@ def test_event_detail_and_update(client, django_user_model):
     """Staff users should see an event and persist valid changes."""
     staff_user = _create_user(django_user_model, is_staff=True)
     client.force_login(staff_user)
-    event = _create_event()
+    event = _create_event(label_note="Entregar o presente sem embalagem.")
 
     detail_response = client.get(reverse("christmas:event_detail", args=[event.pk]))
     detail_content = detail_response.content.decode()
@@ -285,6 +287,7 @@ def test_event_detail_and_update(client, django_user_model):
     ]
     assert "20/12/2026" in detail_content
     assert "14:30" in detail_content
+    assert "Entregar o presente sem embalagem." in detail_content
     assert reverse("christmas:sponsorship_list", args=[event.pk]) in detail_content
     assert "Gerar etiquetas" in detail_content
     assert 'aria-disabled="true"' in detail_content
@@ -300,6 +303,7 @@ def test_event_detail_and_update(client, django_user_model):
             "name": "Natal Atualizado",
             "event_date": "21/12/2026",
             "event_time": "15:00",
+            "label_note": "Identificar o presente com o nome da criança.",
         },
         follow=True,
     )
@@ -309,6 +313,7 @@ def test_event_detail_and_update(client, django_user_model):
         (reverse("christmas:event_detail", args=[event.pk]), 302)
     ]
     assert event.name == "Natal Atualizado"
+    assert event.label_note == "Identificar o presente com o nome da criança."
 
 
 @pytest.mark.django_db

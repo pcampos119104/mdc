@@ -72,15 +72,19 @@ class ChristmasEventForm(forms.ModelForm):
 
     class Meta:
         model = ChristmasEvent
-        fields = ["name", "event_date", "event_time"]
+        fields = ["name", "event_date", "event_time", "label_note"]
         labels = {
             "name": "Nome do evento",
             "event_date": "Data do evento",
             "event_time": "Horário do evento",
+            "label_note": "Observação da etiqueta",
         }
         widgets = {
             "event_date": _brazilian_date_input(),
             "event_time": _time_input(),
+            "label_note": forms.TextInput(
+                attrs={"placeholder": "Ex.: Entregar o presente sem embalagem"}
+            ),
         }
         error_messages = {
             "name": {"required": "Informe o nome do evento."},
@@ -91,6 +95,9 @@ class ChristmasEventForm(forms.ModelForm):
             "event_time": {
                 "required": "Informe o horário do evento.",
                 "invalid": "Informe um horário válido.",
+            },
+            "label_note": {
+                "max_length": "A observação deve ter no máximo 100 caracteres.",
             },
         }
 

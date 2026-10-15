@@ -33,7 +33,10 @@ def test_label_pages_group_sponsorships_six_at_a_time():
 
 def test_labels_html_contains_sheets_borders_and_identification():
     """Rendered HTML should contain one bordered card per sponsorship."""
-    event = SimpleNamespace(name="Natal Feliz 2026")
+    event = SimpleNamespace(
+        name="Natal Feliz 2026",
+        label_note="Entregar o presente sem embalagem.",
+    )
     html = labels.render_sponsorship_labels_html(
         event,
         [_sponsorship(number) for number in range(1, 14)],
@@ -45,6 +48,17 @@ def test_labels_html_contains_sheets_borders_and_identification():
     assert "<strong>ID:</strong> 1" in html
     assert "<strong>Padrinho:</strong> Padrinho 1" in html
     assert "<strong>Criança:</strong> Criança 1" in html
+    assert html.count("<strong>Observação:</strong>") == 13
+    assert "Entregar o presente sem embalagem." in html
+
+
+def test_labels_html_omits_empty_event_note():
+    """Rendered labels should omit the observation line when no note was provided."""
+    event = SimpleNamespace(name="Natal Feliz 2026", label_note="")
+
+    html = labels.render_sponsorship_labels_html(event, [_sponsorship(1)])
+
+    assert "<strong>Observação:</strong>" not in html
 
 
 def test_pdf_generation_uses_a4_portrait_playwright_options(monkeypatch):

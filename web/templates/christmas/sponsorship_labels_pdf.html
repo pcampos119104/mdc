@@ -68,6 +68,9 @@
             <p><strong>ID:</strong> {{ label.id }}</p>
             <p><strong>Padrinho:</strong> {{ label.sponsor_name }}</p>
             <p><strong>Criança:</strong> {{ label.child_name }}</p>
+            {% if event.label_note %}
+              <p><strong>Observação:</strong> {{ event.label_note }}</p>
+            {% endif %}
           </article>
         {% endfor %}
       </section>
