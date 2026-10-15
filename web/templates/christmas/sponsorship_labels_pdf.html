@@ -38,25 +38,83 @@
       .sponsorship-label {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         border: 1px solid #000;
-        padding: 10mm;
+        padding: 4mm;
         break-inside: avoid;
       }
 
-      .sponsorship-label p {
-        margin: 0 0 5mm;
-        font-size: 16pt;
-        line-height: 1.3;
+      .label-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 3mm;
+        min-height: 13mm;
+      }
+
+      .church-logo {
+        width: 13mm;
+        height: 13mm;
+        object-fit: contain;
+      }
+
+      .sponsorship-number,
+      .event-schedule {
+        color: #c62828;
+        font-weight: 700;
+      }
+
+      .sponsorship-number {
+        margin: 0;
+        font-size: 14pt;
+      }
+
+      .event-name {
+        margin: 1mm 0 0;
+        color: #c62828;
+        font-size: 9pt;
+        font-weight: 700;
+        line-height: 1.2;
+        text-align: center;
+        text-transform: uppercase;
         overflow-wrap: anywhere;
       }
 
-      .sponsorship-label p:last-child {
-        margin-bottom: 0;
+      .child-name {
+        margin: 4mm 0 2.5mm;
+        font-size: 18pt;
+        line-height: 1.15;
+        text-align: center;
+        overflow-wrap: anywhere;
       }
 
-      .sponsorship-label strong {
+      .label-details {
+        display: grid;
+        gap: 1mm;
+      }
+
+      .label-details p,
+      .event-schedule p {
+        margin: 0;
+        font-size: 9.5pt;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .label-details strong {
         font-weight: 700;
+      }
+
+      .label-note {
+        margin-top: 1mm !important;
+      }
+
+      .event-schedule {
+        display: flex;
+        justify-content: space-between;
+        gap: 3mm;
+        margin-top: auto;
+        padding-top: 2mm;
+        border-top: 1px solid #ddd;
       }
     </style>
   </head>
@@ -65,12 +123,28 @@
       <section class="label-sheet">
         {% for label in page %}
           <article class="sponsorship-label">
-            <p><strong>ID:</strong> {{ label.id }}</p>
-            <p><strong>Padrinho:</strong> {{ label.sponsor_name }}</p>
-            <p><strong>Criança:</strong> {{ label.child_name }}</p>
-            {% if event.label_note %}
-              <p><strong>Observação:</strong> {{ event.label_note }}</p>
-            {% endif %}
+            <header class="label-header">
+              <p class="sponsorship-number">Nº {{ label.id }}</p>
+              <img class="church-logo" src="{{ logo_data_uri }}" alt="Logo da Comuna Bristol">
+            </header>
+
+            <p class="event-name">{{ event.name }}</p>
+            <h2 class="child-name">{{ label.child_name }}</h2>
+
+            <div class="label-details">
+              <p><strong>Mãe:</strong> {{ label.mother_name }}</p>
+              <p><strong>Padrinho:</strong> {{ label.sponsor_name }}</p>
+              <p><strong>Idade:</strong> {{ label.age }} {% if label.age == 1 %}ano{% else %}anos{% endif %}</p>
+              <p><strong>Tamanho da roupa:</strong> {{ label.clothing_size|default_if_none:"Não informado" }}</p>
+              {% if event.label_note %}
+                <p class="label-note"><strong>Observação:</strong> {{ event.label_note }}</p>
+              {% endif %}
+            </div>
+
+            <footer class="event-schedule">
+              <p>Festa dia: {{ event.event_date|date:"d/m/y" }}</p>
+              <p>Horário: {{ event.event_time|time:"H:i" }}</p>
+            </footer>
           </article>
         {% endfor %}
       </section>

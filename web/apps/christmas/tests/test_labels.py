@@ -1,5 +1,6 @@
 """Tests for Natal Feliz sponsorship label generation."""
 
+from datetime import date, time
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -13,13 +14,20 @@ def _sponsorship(number):
     return SimpleNamespace(
         pk=number,
         sponsor=SimpleNamespace(name=f"Padrinho {number}"),
-        child=SimpleNamespace(name=f"Criança {number}"),
+        child=SimpleNamespace(
+            name=f"Criança {number}",
+            mother_name=f"Mãe {number}",
+            birth_date=date(2018, 5, 12),
+            clothing_size=8,
+        ),
     )
 
 
 def test_label_pages_group_sponsorships_six_at_a_time():
     """Thirteen sponsorships should produce pages containing 6, 6, and 1 labels."""
+    event = SimpleNamespace(event_date=date(2026, 12, 20))
     pages = labels.build_sponsorship_label_pages(
+        event,
         [_sponsorship(number) for number in range(1, 14)]
     )
 
@@ -28,13 +36,26 @@ def test_label_pages_group_sponsorships_six_at_a_time():
         "id": 1,
         "sponsor_name": "Padrinho 1",
         "child_name": "Criança 1",
+        "mother_name": "Mãe 1",
+        "age": 8,
+        "clothing_size": 8,
     }
 
 
-def test_labels_html_contains_sheets_borders_and_identification():
-    """Rendered HTML should contain one bordered card per sponsorship."""
+def test_age_is_calculated_on_event_date():
+    """A child's age should reflect whether their birthday passed by the event."""
+    birth_date = date(2018, 12, 21)
+
+    assert labels.calculate_age_on_date(birth_date, date(2026, 12, 20)) == 7
+    assert labels.calculate_age_on_date(birth_date, date(2026, 12, 21)) == 8
+
+
+def test_labels_html_contains_complete_label_information():
+    """Rendered HTML should contain all printable sponsorship information."""
     event = SimpleNamespace(
         name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time=time(14, 30),
         label_note="Entregar o presente sem embalagem.",
     )
     html = labels.render_sponsorship_labels_html(
@@ -45,16 +66,32 @@ def test_labels_html_contains_sheets_borders_and_identification():
     assert html.count('<section class="label-sheet">') == 3
     assert html.count('<article class="sponsorship-label">') == 13
     assert "border: 1px solid #000" in html
-    assert "<strong>ID:</strong> 1" in html
+    assert '<p class="sponsorship-number">Nº 1</p>' in html
+    assert html.count('<p class="event-name">Natal Feliz 2026</p>') == 13
+    assert '<h2 class="child-name">Criança 1</h2>' in html
+    assert "font-size: 18pt" in html
+    assert "text-transform: uppercase" in html
+    assert "<strong>Mãe:</strong> Mãe 1" in html
     assert "<strong>Padrinho:</strong> Padrinho 1" in html
-    assert "<strong>Criança:</strong> Criança 1" in html
+    assert "<strong>Idade:</strong> 8 anos" in html
+    assert "<strong>Tamanho da roupa:</strong> 8" in html
     assert html.count("<strong>Observação:</strong>") == 13
     assert "Entregar o presente sem embalagem." in html
+    assert "Festa dia: 20/12/26" in html
+    assert "Horário: 14:30" in html
+    assert "color: #c62828" in html
+    assert 'src="data:image/webp;base64,' in html
+    assert 'alt="Logo da Comuna Bristol"' in html
 
 
 def test_labels_html_omits_empty_event_note():
     """Rendered labels should omit the observation line when no note was provided."""
-    event = SimpleNamespace(name="Natal Feliz 2026", label_note="")
+    event = SimpleNamespace(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time=time(14, 30),
+        label_note="",
+    )
 
     html = labels.render_sponsorship_labels_html(event, [_sponsorship(1)])
 
@@ -71,7 +108,12 @@ def test_pdf_generation_uses_a4_portrait_playwright_options(monkeypatch):
     monkeypatch.setattr(sync_api, "sync_playwright", lambda: manager)
 
     content = labels.generate_sponsorship_labels_pdf(
-        SimpleNamespace(name="Natal Feliz 2026"),
+        SimpleNamespace(
+            name="Natal Feliz 2026",
+            event_date=date(2026, 12, 20),
+            event_time=time(14, 30),
+            label_note="",
+        ),
         [_sponsorship(1)],
     )
 

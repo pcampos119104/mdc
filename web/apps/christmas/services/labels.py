@@ -1,18 +1,38 @@
 """PDF label generation for Natal Feliz sponsorships."""
 
+import base64
+from pathlib import Path
+
+from django.contrib.staticfiles import finders
 from django.template.loader import render_to_string
 
 
 LABELS_PER_PAGE = 6
+CHURCH_LOGO_PATH = "img/comuna-bristol-logo.webp"
 
 
-def build_sponsorship_label_pages(sponsorships):
+def calculate_age_on_date(birth_date, reference_date):
+    """Return the age reached by a child on the reference date."""
+    birthday_has_passed = (reference_date.month, reference_date.day) >= (
+        birth_date.month,
+        birth_date.day,
+    )
+    return reference_date.year - birth_date.year - (not birthday_has_passed)
+
+
+def build_sponsorship_label_pages(event, sponsorships):
     """Return sponsorship label entries grouped into pages of six."""
     entries = [
         {
             "id": sponsorship.pk,
             "sponsor_name": sponsorship.sponsor.name,
             "child_name": sponsorship.child.name,
+            "mother_name": sponsorship.child.mother_name,
+            "age": calculate_age_on_date(
+                sponsorship.child.birth_date,
+                event.event_date,
+            ),
+            "clothing_size": sponsorship.child.clothing_size,
         }
         for sponsorship in sponsorships
     ]
@@ -22,13 +42,24 @@ def build_sponsorship_label_pages(sponsorships):
     ]
 
 
+def church_logo_data_uri():
+    """Return the church logo as a data URI suitable for standalone HTML."""
+    logo_path = finders.find(CHURCH_LOGO_PATH)
+    if not logo_path:
+        raise FileNotFoundError(f"Static church logo not found: {CHURCH_LOGO_PATH}")
+
+    encoded_logo = base64.b64encode(Path(logo_path).read_bytes()).decode("ascii")
+    return f"data:image/webp;base64,{encoded_logo}"
+
+
 def render_sponsorship_labels_html(event, sponsorships):
     """Render printable HTML labels for an event's sponsorships."""
     return render_to_string(
         "christmas/sponsorship_labels_pdf.html",
         {
             "event": event,
-            "pages": build_sponsorship_label_pages(sponsorships),
+            "logo_data_uri": church_logo_data_uri(),
+            "pages": build_sponsorship_label_pages(event, sponsorships),
         },
     )
 
