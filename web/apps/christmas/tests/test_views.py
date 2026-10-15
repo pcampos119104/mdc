@@ -521,6 +521,31 @@ def test_sponsorship_create_saves_relationship_in_url_event(
 
 
 @pytest.mark.django_db
+def test_sponsorship_form_renders_searchable_member_and_child_choices(
+    client,
+    django_user_model,
+):
+    """The sponsorship form should enhance its existing choices with Alpine.js."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    event = _create_event()
+    _create_member(name="João Santos")
+    _create_child(name="Ágata Silva")
+
+    response = client.get(reverse("christmas:sponsorship_create", args=[event.pk]))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert content.count('x-data="searchableSelect()"') == 2
+    assert content.count('role="combobox"') == 2
+    assert 'name="sponsor"' in content
+    assert 'name="child"' in content
+    assert "João Santos" in content
+    assert "Ágata Silva" in content
+    assert "Nenhum resultado encontrado." in content
+
+
+@pytest.mark.django_db
 def test_sponsorship_create_rejects_duplicate_child_in_event(
     client,
     django_user_model,

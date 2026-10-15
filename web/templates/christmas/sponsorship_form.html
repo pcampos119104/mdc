@@ -30,8 +30,8 @@
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            <c-form.select :field="form.sponsor" class="sm:col-span-2" />
-            <c-form.select :field="form.child" class="sm:col-span-2" />
+            <c-form.searchable_select :field="form.sponsor" class="sm:col-span-2" placeholder="Digite o nome do padrinho" />
+            <c-form.searchable_select :field="form.child" class="sm:col-span-2" placeholder="Digite o nome da criança" />
           </div>
         </div>
 
@@ -42,4 +42,130 @@
       </form>
     </div>
   </section>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("searchableSelect", () => ({
+        enhanced: false,
+        open: false,
+        query: "",
+        selected: "",
+        options: [],
+        activeIndex: -1,
+
+        init() {
+          this.options = Array.from(this.$refs.select.options)
+            .filter((option) => option.value)
+            .map((option) => ({ value: option.value, label: option.text.trim() }));
+          this.selected = this.$refs.select.value;
+          this.restoreSelectedLabel();
+          this.enhanced = true;
+        },
+
+        normalize(value) {
+          return String(value || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLocaleLowerCase("pt-BR")
+            .trim();
+        },
+
+        get selectedOption() {
+          return this.options.find((option) => option.value === this.selected);
+        },
+
+        get filteredOptions() {
+          const term = this.normalize(this.query);
+          const selectedLabel = this.normalize(this.selectedOption?.label);
+
+          if (!term || (this.selected && term === selectedLabel)) {
+            return this.options;
+          }
+
+          return this.options.filter((option) => this.normalize(option.label).includes(term));
+        },
+
+        focusSearch(event) {
+          if (!this.enhanced) {
+            return;
+          }
+
+          event.preventDefault();
+          this.$refs.search.focus();
+          this.openDropdown();
+        },
+
+        openDropdown() {
+          this.open = true;
+          const selectedIndex = this.filteredOptions.findIndex(
+            (option) => option.value === this.selected,
+          );
+          this.activeIndex = this.filteredOptions.length ? Math.max(0, selectedIndex) : -1;
+          this.$nextTick(() => this.$refs.search.select());
+        },
+
+        closeDropdown() {
+          this.open = false;
+          this.activeIndex = -1;
+          this.restoreSelectedLabel();
+        },
+
+        filterOptions(value) {
+          this.query = value;
+          this.selected = "";
+          this.open = true;
+          this.activeIndex = this.filteredOptions.length ? 0 : -1;
+          this.$refs.search.setCustomValidity("Selecione uma opção da lista.");
+        },
+
+        choose(option) {
+          this.selected = option.value;
+          this.query = option.label;
+          this.open = false;
+          this.activeIndex = -1;
+          this.$refs.search.setCustomValidity("");
+          this.$nextTick(() => this.$refs.search.focus());
+        },
+
+        chooseActive() {
+          if (!this.open) {
+            this.openDropdown();
+            return;
+          }
+
+          const option = this.filteredOptions[this.activeIndex];
+          if (option) {
+            this.choose(option);
+          }
+        },
+
+        moveActive(direction) {
+          if (!this.open) {
+            this.openDropdown();
+            return;
+          }
+
+          const count = this.filteredOptions.length;
+          if (!count) {
+            this.activeIndex = -1;
+            return;
+          }
+
+          this.activeIndex = (this.activeIndex + direction + count) % count;
+          this.$nextTick(() => {
+            this.$refs.listbox
+              .querySelector(`[data-option-index="${this.activeIndex}"]`)
+              ?.scrollIntoView({ block: "nearest" });
+          });
+        },
+
+        restoreSelectedLabel() {
+          this.query = this.selectedOption?.label || "";
+          this.$refs.search?.setCustomValidity("");
+        },
+      }));
+    });
+  </script>
 {% endblock %}

@@ -1,0 +1,136 @@
+<c-vars
+    class=""
+    :nolabel="False"
+    :show_help="True"
+    :required="None"
+    help_text=""
+    placeholder="Digite para buscar"
+/>
+
+<div class="{{ class }}" x-data="searchableSelect()" @click.outside="closeDropdown()">
+    {% with field_help=help_text|default:field.help_text %}
+        {% if nolabel is False %}
+            <label
+                id="{{ field.id_for_label }}-label"
+                for="{{ field.id_for_label }}"
+                class="mb-2 block text-sm font-medium {% if field.errors %}text-red-700{% else %}text-slate-900{% endif %}"
+                @click="focusSearch($event)"
+            >
+                {{ field.label }}
+
+                {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}
+                    <span class="text-red-600" aria-hidden="true">*</span>
+                {% endif %}
+            </label>
+        {% endif %}
+
+        <select
+            name="{{ field.html_name }}"
+            id="{{ field.id_for_label }}"
+            x-ref="select"
+            x-model="selected"
+            x-show="!enhanced"
+            class="block w-full rounded-lg border p-2.5 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+            {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}
+                required
+                :required="!enhanced"
+            {% endif %}
+            {% if field.errors %}
+                aria-invalid="true"
+                aria-describedby="{{ field.id_for_label }}-errors"
+            {% elif show_help and field_help %}
+                aria-describedby="{{ field.id_for_label }}-help"
+            {% endif %}
+        >
+            {% for value, label in field.field.choices %}
+                <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <div x-show="enhanced" x-cloak class="relative">
+            <input
+                type="search"
+                id="{{ field.id_for_label }}-search"
+                x-ref="search"
+                x-model="query"
+                @focus="openDropdown()"
+                @click="openDropdown()"
+                @input="filterOptions($event.target.value)"
+                @keydown.arrow-down.prevent="moveActive(1)"
+                @keydown.arrow-up.prevent="moveActive(-1)"
+                @keydown.enter.prevent="chooseActive()"
+                @keydown.escape.prevent="closeDropdown()"
+                @keydown.tab="closeDropdown()"
+                placeholder="{{ placeholder }}"
+                autocomplete="off"
+                role="combobox"
+                aria-labelledby="{{ field.id_for_label }}-label"
+                aria-autocomplete="list"
+                aria-controls="{{ field.id_for_label }}-options"
+                :aria-expanded="open.toString()"
+                :aria-activedescendant="activeIndex >= 0 ? '{{ field.id_for_label }}-option-' + activeIndex : null"
+                class="block w-full rounded-lg border p-2.5 pr-10 text-sm shadow-sm {% if field.errors %}border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500{% else %}border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-600 focus:ring-blue-600{% endif %}"
+                {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
+                {% if field.errors %}
+                    aria-invalid="true"
+                    aria-describedby="{{ field.id_for_label }}-errors"
+                {% elif show_help and field_help %}
+                    aria-describedby="{{ field.id_for_label }}-help"
+                {% endif %}
+            >
+
+            <svg class="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-500" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+            </svg>
+
+            <div
+                id="{{ field.id_for_label }}-options"
+                x-ref="listbox"
+                x-show="open"
+                x-transition.origin.top
+                x-cloak
+                role="listbox"
+                class="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+            >
+                <template x-for="(option, index) in filteredOptions" :key="option.value">
+                    <button
+                        type="button"
+                        role="option"
+                        tabindex="-1"
+                        :id="'{{ field.id_for_label }}-option-' + index"
+                        :data-option-index="index"
+                        :aria-selected="(selected === option.value).toString()"
+                        @mouseenter="activeIndex = index"
+                        @mousedown.prevent
+                        @click="choose(option)"
+                        class="block w-full px-4 py-2 text-left text-sm text-slate-700"
+                        :class="activeIndex === index ? 'bg-blue-50 text-blue-800' : 'hover:bg-slate-50'"
+                        x-text="option.label"
+                    ></button>
+                </template>
+
+                <p x-show="filteredOptions.length === 0" class="px-4 py-3 text-sm text-slate-500" aria-live="polite">
+                    Nenhum resultado encontrado.
+                </p>
+            </div>
+        </div>
+
+        {% if show_help and field_help %}
+            <p id="{{ field.id_for_label }}-help" class="mt-1 text-xs text-slate-500">
+                {{ field_help }}
+            </p>
+        {% endif %}
+
+        {% if field.errors %}
+            <div id="{{ field.id_for_label }}-errors" class="mt-2 space-y-1" role="alert">
+                {% for error in field.errors %}
+                    <p class="text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>

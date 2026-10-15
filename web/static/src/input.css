@@ -3,3 +3,7 @@
 @source "../../templates/**/*.html";
 @source "../../apps/**/templates/**/*.html";
 @source "../../node_modules/flowbite/**/*.js";
+
+[x-cloak] {
+  display: none !important;
+}
