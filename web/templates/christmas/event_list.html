@@ -10,16 +10,22 @@
       <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p class="text-sm font-medium text-blue-700">Campanha de Natal</p>
-          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Eventos Natal Feliz</h1>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Natal Feliz</h1>
           <p class="mt-2 max-w-2xl text-sm text-slate-600">Gerencie as edições da campanha e seus apadrinhamentos.</p>
         </div>
-        <div class="flex flex-col gap-3 sm:flex-row">
-          <a href="{% url 'christmas:child_list' %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100">Crianças</a>
-          <a href="{% url 'christmas:event_create' %}" class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">Novo evento</a>
+        <div class="flex flex-col sm:flex-row">
+          <a href="{% url 'christmas:event_create' %}" class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">
+            <svg class="h-5 w-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Novo evento
+          </a>
         </div>
       </div>
 
-      <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      {% include "christmas/partials/_section_tabs.html" with active_section="events" only %}
+
+      <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end">
           <div class="flex-1">
             <label for="event-search" class="mb-2 block text-sm font-medium text-slate-900">Buscar eventos</label>
