@@ -123,7 +123,7 @@ CPFs must also be checked because the model enforces their uniqueness.
 Load the approved fixture as a separate operation:
 
 ```bash
-just mng loaddata extras/output/members_fixture.json
+python manage.py loaddata extras/output/members_fixture.json
 ```
 
 The fixture intentionally leaves `photo` empty. After loading it, validate the
