@@ -106,3 +106,24 @@ def test_password_change_page_renders_for_authenticated_user(client, django_user
     assert any(
         template.name == "account/password_change.html" for template in response.templates
     )
+
+
+@pytest.mark.django_db
+def test_header_shows_account_actions_for_authenticated_user(
+    client, django_user_model
+):
+    """Authenticated users should see password and logout actions in the header."""
+    user = django_user_model.objects.create_user(
+        username="member",
+        email="member@example.com",
+        password="secret-pass-123",
+    )
+    client.force_login(user)
+
+    response = client.get(reverse("home"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "Minha conta" in content
+    assert f'href="{reverse("account_change_password")}"' in content
+    assert f'href="{reverse("account_logout")}"' in content
