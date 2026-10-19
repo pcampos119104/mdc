@@ -33,13 +33,26 @@ def test_label_pages_group_sponsorships_six_at_a_time():
 
     assert [len(page) for page in pages] == [6, 6, 1]
     assert pages[0][0] == {
-        "id": 1,
+        "number": 1,
         "sponsor_name": "Padrinho 1",
         "child_name": "Criança 1",
         "mother_name": "Mãe 1",
         "age": 8,
         "clothing_size": 8,
     }
+
+
+def test_label_numbers_are_sequential_regardless_of_sponsorship_ids():
+    """Printed numbers should start at one and ignore gaps in database IDs."""
+    event = SimpleNamespace(event_date=date(2026, 12, 20))
+    sponsorships = [_sponsorship(number) for number in (3, 8, 15, 21, 34, 55, 89)]
+
+    pages = labels.build_sponsorship_label_pages(event, sponsorships)
+
+    assert [[label["number"] for label in page] for page in pages] == [
+        [1, 2, 3, 4, 5, 6],
+        [7],
+    ]
 
 
 def test_age_is_calculated_on_event_date():

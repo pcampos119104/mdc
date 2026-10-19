@@ -24,7 +24,7 @@ def build_sponsorship_label_pages(event, sponsorships):
     """Return sponsorship label entries grouped into pages of six."""
     entries = [
         {
-            "id": sponsorship.pk,
+            "number": number,
             "sponsor_name": sponsorship.sponsor.name,
             "child_name": sponsorship.child.name,
             "mother_name": sponsorship.child.mother_name,
@@ -34,7 +34,7 @@ def build_sponsorship_label_pages(event, sponsorships):
             ),
             "clothing_size": sponsorship.child.clothing_size,
         }
-        for sponsorship in sponsorships
+        for number, sponsorship in enumerate(sponsorships, start=1)
     ]
     return [
         entries[index : index + LABELS_PER_PAGE]
