@@ -68,16 +68,18 @@ def test_labels_html_contains_complete_label_information():
     assert "border: 1px solid #000" in html
     assert '<p class="sponsorship-number">Nº 1</p>' in html
     assert html.count('<p class="event-name">Natal Feliz 2026</p>') == 13
-    assert '<h2 class="child-name">Criança 1</h2>' in html
+    assert '<h2 class="child-name">CRIANÇA 1</h2>' in html
     assert "font-size: 18pt" in html
     assert "text-transform: uppercase" in html
+    assert "width: 26mm" in html
+    assert "height: 26mm" in html
     assert "<strong>Mãe:</strong> Mãe 1" in html
     assert "<strong>Padrinho:</strong> Padrinho 1" in html
     assert "<strong>Idade:</strong> 8 anos" in html
     assert "<strong>Tamanho da roupa:</strong> 8" in html
     assert html.count("<strong>Observação:</strong>") == 13
     assert "Entregar o presente sem embalagem." in html
-    assert "Festa dia: 20/12/26" in html
+    assert "Festa dia: 20/12/2026" in html
     assert "Horário: 14:30" in html
     assert "color: #c62828" in html
     assert 'src="data:image/webp;base64,' in html

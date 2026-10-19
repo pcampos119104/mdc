@@ -48,12 +48,12 @@
         align-items: center;
         justify-content: space-between;
         gap: 3mm;
-        min-height: 13mm;
+        min-height: 26mm;
       }
 
       .church-logo {
-        width: 13mm;
-        height: 13mm;
+        width: 26mm;
+        height: 26mm;
         object-fit: contain;
       }
 
@@ -129,7 +129,7 @@
             </header>
 
             <p class="event-name">{{ event.name }}</p>
-            <h2 class="child-name">{{ label.child_name }}</h2>
+            <h2 class="child-name">{{ label.child_name|upper }}</h2>
 
             <div class="label-details">
               <p><strong>Mãe:</strong> {{ label.mother_name }}</p>
@@ -142,7 +142,7 @@
             </div>
 
             <footer class="event-schedule">
-              <p>Festa dia: {{ event.event_date|date:"d/m/y" }}</p>
+              <p>Festa dia: {{ event.event_date|date:"d/m/Y" }}</p>
               <p>Horário: {{ event.event_time|time:"H:i" }}</p>
             </footer>
           </article>
