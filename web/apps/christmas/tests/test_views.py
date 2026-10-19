@@ -239,6 +239,8 @@ def test_event_create_renders_form_and_saves_event(client, django_user_model):
         template.name for template in get_response.templates if template.name
     ]
     assert 'placeholder="dd/mm/aaaa"' in get_response.content.decode()
+    assert 'x-data="dateMask"' in get_response.content.decode()
+    assert '@input="format($event)"' in get_response.content.decode()
     assert 'type="time"' in get_response.content.decode()
 
     post_response = client.post(
@@ -767,6 +769,8 @@ def test_child_create_page_renders_form(client, django_user_model):
     assert 'name="birth_date"' in content
     assert 'name="clothing_size"' in content
     assert 'placeholder="dd/mm/aaaa"' in content
+    assert 'x-data="dateMask"' in content
+    assert '@input="format($event)"' in content
 
 
 @pytest.mark.django_db

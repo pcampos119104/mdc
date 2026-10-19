@@ -12,7 +12,9 @@ def _brazilian_date_input():
     return forms.DateInput(
         attrs={
             "autocomplete": "off",
+            "date_mask": True,
             "inputmode": "numeric",
+            "maxlength": "10",
             "pattern": r"\d{2}/\d{2}/\d{4}",
             "placeholder": "dd/mm/aaaa",
             "title": "Informe uma data no formato dd/mm/aaaa.",

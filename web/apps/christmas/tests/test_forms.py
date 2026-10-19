@@ -31,6 +31,17 @@ def test_child_form_accepts_brazilian_date_and_saves_child():
     assert child.clothing_size == 8
 
 
+def test_christmas_forms_configure_date_mask_widgets():
+    """Christmas date widgets should expose the client-side mask settings."""
+    child_form = ChildForm()
+    event_form = ChristmasEventForm()
+
+    assert child_form.fields["birth_date"].widget.attrs["date_mask"] is True
+    assert child_form.fields["birth_date"].widget.attrs["maxlength"] == "10"
+    assert event_form.fields["event_date"].widget.attrs["date_mask"] is True
+    assert event_form.fields["event_date"].widget.attrs["maxlength"] == "10"
+
+
 def test_child_form_requires_all_fields_with_portuguese_messages():
     """Child form should report required fields in Portuguese."""
     form = ChildForm(data={})

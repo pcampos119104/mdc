@@ -395,6 +395,7 @@ def test_member_form_renders_native_and_alpine_validation(
     content = response.content.decode()
 
     assert 'src="/static/js/alpine.min.js"' in content
+    assert 'src="/static/js/date-mask.js"' in content
     assert 'x-data="memberFormValidation()"' in content
     assert 'Alpine.data("memberFormValidation"' in content
     assert 'name="cpf"' in content
@@ -412,6 +413,8 @@ def test_member_form_renders_native_and_alpine_validation(
     assert 'name="birth_date"' in content
     assert 'placeholder="dd/mm/aaaa"' in content
     assert r'pattern="\d{2}/\d{2}/\d{4}"' in content
+    assert content.count('x-data="dateMask"') == 4
+    assert content.count('@input="format($event)"') == 4
 
 
 @pytest.mark.django_db

@@ -80,6 +80,21 @@ def test_member_form_renders_date_initial_values_as_brazilian_format():
     assert 'value="07/06/2015"' in form["marriage_date"].as_widget()
 
 
+def test_member_form_configures_date_mask_widgets():
+    """Member date widgets should expose the client-side mask settings."""
+    form = MemberForm()
+
+    for field_name in (
+        "birth_date",
+        "baptism_date",
+        "acclamation_date",
+        "marriage_date",
+    ):
+        attrs = form.fields[field_name].widget.attrs
+        assert attrs["date_mask"] is True
+        assert attrs["maxlength"] == "10"
+
+
 def test_member_form_rejects_iso_date_format():
     """Member form should require dates submitted as dd/mm/yyyy."""
     form = MemberForm(

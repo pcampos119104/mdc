@@ -23,6 +23,10 @@
             type="{{ input_type }}"
             name="{{ field.html_name }}"
             id="{{ field.id_for_label }}"
+            {% if field.field.widget.attrs.date_mask %}
+                x-data="dateMask"
+                @input="format($event)"
+            {% endif %}
             {% if input_type == "file" %}
             {% elif input_type == "time" %}
                 value="{{ field.value|time:'H:i'|default:field.value|default_if_none:'' }}"
@@ -39,7 +43,7 @@
             {# Replica required somente quando o formulário permite validação HTML. #}
             {% if required is True or required is None and field.field.required and field.form.use_required_attribute %}required{% endif %}
             {# Repassa limite maximo configurado no campo Django. #}
-            {% if field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
+            {% if field.field.widget.attrs.maxlength %}maxlength="{{ field.field.widget.attrs.maxlength }}"{% elif field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
             {# Repassa restricoes HTML nativas configuradas no widget. #}
             {% if field.field.widget.attrs.minlength %}minlength="{{ field.field.widget.attrs.minlength }}"{% endif %}
             {% if field.field.widget.attrs.pattern %}pattern="{{ field.field.widget.attrs.pattern }}"{% endif %}
