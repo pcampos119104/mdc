@@ -24,7 +24,7 @@ def test_get_birthday_members_filters_valid_active_members_across_year_boundary(
     Member.objects.create(
         name="Participante externa",
         birth_date=date(1990, 1, 2),
-        is_church_member=False,
+        registration_type=Member.RegistrationType.CHRISTMAS,
     )
     deleted_member = Member.objects.create(
         name="Removido",

@@ -26,7 +26,7 @@ def member_list(request):
     """Display the list of members, optionally filtered by search query."""
     query = request.GET.get("q", "").strip()
     query_digits = _only_digits(query)
-    members = Member.objects.filter(is_church_member=True).select_related("address")
+    members = Member.objects.church_members().select_related("address")
 
     if query:
         search_filter = (
@@ -71,7 +71,7 @@ def _get_member_address(member):
 def member_detail(request, pk):
     """Display a member registration with all related information."""
     member = get_object_or_404(
-        Member.objects.filter(is_church_member=True).select_related("address"),
+        Member.objects.church_members().select_related("address"),
         pk=pk,
     )
     return render(
@@ -122,7 +122,15 @@ class MemberCreateView(LoginRequiredMixin, View):
                 address.member = member
                 address.save()
 
-            messages.success(request, "Membro criado com sucesso.")
+            if member.registration_type == Member.RegistrationType.CHRISTMAS:
+                messages.success(
+                    request,
+                    "Padrinho cadastrado para o Natal Feliz com sucesso.",
+                )
+                if request.user.is_staff or request.user.is_superuser:
+                    return redirect("christmas:sponsor_list")
+            else:
+                messages.success(request, "Membro criado com sucesso.")
             return redirect("members:list")
 
         context = _member_form_context(
@@ -140,7 +148,7 @@ class MemberUpdateView(LoginRequiredMixin, View):
     def get(self, request, pk):
         """Display the member update form."""
         member = get_object_or_404(
-            Member.objects.filter(is_church_member=True).select_related("address"),
+            Member.objects.church_members().select_related("address"),
             pk=pk,
         )
         context = _member_form_context(
@@ -153,7 +161,7 @@ class MemberUpdateView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         """Validate and update a member with address and phone."""
-        member = get_object_or_404(Member, pk=pk, is_church_member=True)
+        member = get_object_or_404(Member.objects.church_members(), pk=pk)
         member_form = MemberForm(request.POST, request.FILES, instance=member)
         address_form = AddressForm(
             request.POST,
@@ -168,7 +176,15 @@ class MemberUpdateView(LoginRequiredMixin, View):
                 address.member = member
                 address.save()
 
-            messages.success(request, "Membro atualizado com sucesso.")
+            if member.registration_type == Member.RegistrationType.CHRISTMAS:
+                messages.success(
+                    request,
+                    "Padrinho atualizado para o Natal Feliz com sucesso.",
+                )
+                if request.user.is_staff or request.user.is_superuser:
+                    return redirect("christmas:sponsor_list")
+            else:
+                messages.success(request, "Membro atualizado com sucesso.")
             return redirect("members:list")
 
         context = _member_form_context(
@@ -186,14 +202,14 @@ class MemberRemoveView(LoginRequiredMixin, View):
     def get(self, request, pk):
         """Display the member removal confirmation page."""
         member = get_object_or_404(
-            Member.objects.filter(is_church_member=True).select_related("address"),
+            Member.objects.church_members().select_related("address"),
             pk=pk,
         )
         return render(request, "members/member_confirm_remove.html", {"member": member})
 
     def post(self, request, pk):
         """Soft delete a member and return to the members list."""
-        member = get_object_or_404(Member, pk=pk, is_church_member=True)
+        member = get_object_or_404(Member.objects.church_members(), pk=pk)
         member_name = member.name
         member.delete()
 

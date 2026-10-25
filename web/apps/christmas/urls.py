@@ -50,6 +50,22 @@ urlpatterns = [
         views.ChristmasSponsorshipRemoveView.as_view(),
         name="sponsorship_remove",
     ),
+    path("sponsors/", views.sponsor_list, name="sponsor_list"),
+    path(
+        "sponsors/new/",
+        views.ChristmasSponsorCreateView.as_view(),
+        name="sponsor_create",
+    ),
+    path(
+        "sponsors/<int:pk>/edit/",
+        views.ChristmasSponsorUpdateView.as_view(),
+        name="sponsor_update",
+    ),
+    path(
+        "sponsors/<int:pk>/remove/",
+        views.ChristmasSponsorRemoveView.as_view(),
+        name="sponsor_remove",
+    ),
     path("children/", views.child_list, name="child_list"),
     path("children/new/", views.ChildCreateView.as_view(), name="child_create"),
     path("children/<int:pk>/", views.child_detail, name="child_detail"),

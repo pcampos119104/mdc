@@ -7,6 +7,7 @@ import pytest
 from apps.christmas.forms import (
     ChildForm,
     ChristmasEventForm,
+    ChristmasSponsorForm,
     ChristmasSponsorshipForm,
 )
 from apps.christmas.models import Child, ChristmasEvent, ChristmasSponsorship
@@ -158,11 +159,20 @@ def test_sponsorship_form_saves_valid_relationship():
 
 
 @pytest.mark.django_db
-def test_sponsorship_form_lists_only_active_church_members():
-    """Sponsor choices should exclude inactive, non-member, and removed records."""
+def test_sponsorship_form_lists_active_members_and_natal_feliz_registrations():
+    """Sponsor choices should include active members and external campaign sponsors."""
     active_member = Member.objects.create(name="Ativo")
+    external_sponsor = Member.objects.create(
+        name="Padrinho externo",
+        registration_type=Member.RegistrationType.CHRISTMAS,
+    )
     Member.objects.create(name="Inativo", is_active=False, inactive_reason="Mudança")
-    Member.objects.create(name="Visitante", is_church_member=False)
+    Member.objects.create(
+        name="Padrinho externo inativo",
+        registration_type=Member.RegistrationType.CHRISTMAS,
+        is_active=False,
+        inactive_reason="Não participará",
+    )
     removed_member = Member.objects.create(name="Removido")
     removed_member.delete()
 
@@ -173,7 +183,29 @@ def test_sponsorship_form_lists_only_active_church_members():
     )
     form = ChristmasSponsorshipForm(event=event)
 
-    assert list(form.fields["sponsor"].queryset) == [active_member]
+    assert list(form.fields["sponsor"].queryset) == [active_member, external_sponsor]
+
+
+@pytest.mark.django_db
+def test_christmas_sponsor_form_normalizes_contact_and_forces_special_type():
+    """External sponsor form should save a contact-only Natal Feliz registration."""
+    form = ChristmasSponsorForm(
+        data={
+            "name": "Joana Externa",
+            "cpf": "123.456.789-01",
+            "phone": "(11) 99999-9999",
+            "email": "joana@example.com",
+            "is_active": "on",
+        }
+    )
+
+    assert form.is_valid(), form.errors
+    sponsor = form.save()
+    assert sponsor.cpf == "12345678901"
+    assert sponsor.phone == "11999999999"
+    assert sponsor.registration_type == Member.RegistrationType.CHRISTMAS
+    assert sponsor.is_church_member is False
+    assert sponsor.include_in_birthday_list is False
 
 
 @pytest.mark.django_db

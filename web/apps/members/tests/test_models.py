@@ -66,15 +66,52 @@ def test_member_can_be_created_with_initial_fields():
 
 @pytest.mark.django_db
 def test_member_record_can_represent_a_non_member():
-    """Member records should also store people who are not church members."""
+    """Natal Feliz records should represent people who are not church members."""
     person = Member.objects.create(
         name="Visitante da Campanha",
-        is_church_member=False,
+        registration_type=Member.RegistrationType.CHRISTMAS,
     )
 
     person.full_clean()
 
     assert person.is_church_member is False
+    assert person.include_in_birthday_list is False
+    assert person.get_registration_type_display() == "Cadastro Natal Feliz"
+
+
+@pytest.mark.django_db
+def test_member_query_scopes_separate_church_members_and_christmas_sponsors():
+    """Member scopes should keep special registrations out of church features."""
+    church_member = Member.objects.create(name="Membro da igreja")
+    external_sponsor = Member.objects.create(
+        name="Padrinho externo",
+        registration_type=Member.RegistrationType.CHRISTMAS,
+    )
+    inactive_sponsor = Member.objects.create(
+        name="Padrinho inativo",
+        registration_type=Member.RegistrationType.CHRISTMAS,
+        is_active=False,
+        inactive_reason="Não participará",
+    )
+
+    assert list(Member.objects.church_members()) == [church_member]
+    assert list(Member.objects.christmas_registrations()) == [
+        external_sponsor,
+        inactive_sponsor,
+    ]
+    assert list(Member.objects.eligible_christmas_sponsors()) == [
+        church_member,
+        external_sponsor,
+    ]
+
+
+@pytest.mark.django_db
+def test_member_registration_type_and_membership_cannot_diverge():
+    """Database constraint should preserve the registration membership invariant."""
+    member = Member.objects.create(name="Membro da igreja")
+
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Member.objects.filter(pk=member.pk).update(is_church_member=False)
 
 
 @pytest.mark.django_db
@@ -103,6 +140,7 @@ def test_member_rejects_invalid_structured_values():
         member.full_clean()
 
 
+@pytest.mark.django_db
 def test_member_requires_inactive_reason_when_inactive():
     """Inactive members should include the reason for inactivation."""
     member = Member(name="Maria Silva", is_active=False)
@@ -160,6 +198,7 @@ def test_member_address_belongs_to_member():
     assert str(address) == f"Address for {member.name}"
 
 
+@pytest.mark.django_db
 def test_contact_data_rejects_invalid_numeric_values():
     """Address and member phone numeric fields should reject malformed values."""
     member = Member(name="Maria Silva")

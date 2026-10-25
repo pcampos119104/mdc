@@ -67,7 +67,7 @@ class ChristmasEvent(models.Model):
 
 
 class ChristmasSponsorship(models.Model):
-    """Relate a church member to a child in a Natal Feliz event."""
+    """Relate an eligible sponsor to a child in a Natal Feliz event."""
 
     event = models.ForeignKey(
         ChristmasEvent,
@@ -79,7 +79,7 @@ class ChristmasSponsorship(models.Model):
         Member,
         on_delete=models.PROTECT,
         related_name="christmas_sponsorships",
-        help_text="Membro da igreja responsável pelo presente da criança.",
+        help_text="Pessoa responsável pelo presente da criança.",
     )
     child = models.ForeignKey(
         Child,

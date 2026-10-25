@@ -157,7 +157,7 @@ def test_member_list_excludes_people_who_are_not_church_members(
     member = Member.objects.create(name="Maria da Igreja")
     non_member = Member.objects.create(
         name="Maria Visitante",
-        is_church_member=False,
+        registration_type=Member.RegistrationType.CHRISTMAS,
     )
 
     response = client.get(reverse("members:list"), {"q": "Maria"})
@@ -180,7 +180,7 @@ def test_member_views_do_not_expose_people_who_are_not_church_members(
     client.force_login(user)
     non_member = Member.objects.create(
         name="Participante Externa",
-        is_church_member=False,
+        registration_type=Member.RegistrationType.CHRISTMAS,
     )
 
     response = client.get(reverse(f"members:{route_name}", args=[non_member.pk]))
@@ -320,6 +320,7 @@ def test_member_create_page_renders_for_authenticated_user(
     assert b"Incluir na lista de aniversariantes" in response.content
     assert b'enctype="multipart/form-data"' in response.content
     assert "Voluntário" in response.content.decode()
+    assert "Cadastro Natal Feliz" in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -443,6 +444,31 @@ def test_member_create_saves_member_address_and_phone(client, django_user_model)
     assert member.include_in_birthday_list is True
     assert member.address.city == "Sao Paulo"
     assert member.address.postal_code == "01001000"
+
+
+@pytest.mark.django_db
+def test_member_create_redirects_special_registration_to_sponsors(
+    client,
+    django_user_model,
+):
+    """Staff-created Natal Feliz registrations should leave the members area."""
+    user = _create_user(django_user_model)
+    user.is_staff = True
+    user.save(update_fields=["is_staff"])
+    client.force_login(user)
+    data = _member_post_data(
+        name="Padrinho externo",
+        registration_type=Member.RegistrationType.CHRISTMAS,
+        cpf="987.654.321-00",
+    )
+
+    response = client.post(reverse("members:create"), data)
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == reverse("christmas:sponsor_list")
+    sponsor = Member.objects.get(name="Padrinho externo")
+    assert sponsor.is_church_member is False
+    assert sponsor.include_in_birthday_list is False
 
 
 @pytest.mark.django_db

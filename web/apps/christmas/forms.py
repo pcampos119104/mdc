@@ -1,10 +1,17 @@
 """Forms for the Natal Feliz campaign."""
 
+import re
+
 from django import forms
 
 from apps.members.models import Member
 
 from .models import Child, ChristmasEvent, ChristmasSponsorship
+
+
+def _only_digits(value):
+    """Return only numeric characters from a submitted contact value."""
+    return re.sub(r"\D", "", value or "")
 
 
 def _brazilian_date_input():
@@ -126,14 +133,13 @@ class ChristmasSponsorshipForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        """Limit sponsors to active church members and order form choices."""
+        """Limit sponsors to eligible active people and order form choices."""
         self.event = kwargs.pop("event")
         super().__init__(*args, **kwargs)
         self.instance.event = self.event
-        self.fields["sponsor"].queryset = Member.objects.filter(
-            is_church_member=True,
-            is_active=True,
-        ).order_by("name")
+        self.fields["sponsor"].queryset = (
+            Member.objects.eligible_christmas_sponsors().order_by("name")
+        )
         self.fields["child"].queryset = Child.objects.order_by("name")
 
     def clean(self):
@@ -158,3 +164,89 @@ class ChristmasSponsorshipForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+
+class ChristmasSponsorForm(forms.ModelForm):
+    """Validate essential contact data for an external Natal Feliz sponsor."""
+
+    cpf = forms.CharField(
+        required=False,
+        max_length=14,
+        label="CPF",
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "off",
+                "inputmode": "numeric",
+                "minlength": "11",
+                "pattern": "[0-9.-]{11,14}",
+                "title": "Informe um CPF com 11 dígitos.",
+            }
+        ),
+    )
+    phone = forms.CharField(
+        required=False,
+        max_length=20,
+        label="Telefone",
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "tel",
+                "inputmode": "tel",
+                "minlength": "8",
+                "pattern": "[0-9()+ -]{8,20}",
+                "title": "Informe um telefone com 8 a 15 dígitos.",
+                "type": "tel",
+            }
+        ),
+    )
+
+    class Meta:
+        model = Member
+        fields = ["name", "cpf", "phone", "email", "is_active", "inactive_reason"]
+        labels = {
+            "name": "Nome completo",
+            "email": "E-mail",
+            "is_active": "Cadastro ativo",
+            "inactive_reason": "Motivo da inativação",
+        }
+        widgets = {
+            "inactive_reason": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        """Force records handled by this form into the Natal Feliz type."""
+        super().__init__(*args, **kwargs)
+        self.instance.registration_type = Member.RegistrationType.CHRISTMAS
+        self.instance.is_church_member = False
+        self.instance.include_in_birthday_list = False
+
+    def clean_cpf(self):
+        """Store CPF with digits only while accepting common masks."""
+        cpf = self.cleaned_data.get("cpf")
+        if not cpf:
+            return None
+
+        digits = _only_digits(cpf)
+        if len(digits) != 11:
+            raise forms.ValidationError("Informe um CPF com 11 dígitos.")
+        return digits
+
+    def clean_phone(self):
+        """Store phone numbers with digits only while accepting common masks."""
+        phone = self.cleaned_data.get("phone")
+        if not phone:
+            return ""
+
+        digits = _only_digits(phone)
+        if not 8 <= len(digits) <= 15:
+            raise forms.ValidationError("Informe um telefone com 8 a 15 dígitos.")
+        return digits
+
+    def save(self, commit=True):
+        """Persist the record as an exclusive Natal Feliz registration."""
+        sponsor = super().save(commit=False)
+        sponsor.registration_type = Member.RegistrationType.CHRISTMAS
+        sponsor.is_church_member = False
+        sponsor.include_in_birthday_list = False
+        if commit:
+            sponsor.save()
+        return sponsor

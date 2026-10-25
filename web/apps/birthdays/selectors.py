@@ -30,12 +30,11 @@ def get_birthday_members_for_period(period_start, period_end):
         return []
 
     members = list(
-        Member.objects.filter(
+        Member.objects.church_members().filter(
             birthday_filter,
             birth_date__isnull=False,
             include_in_birthday_list=True,
             is_active=True,
-            is_church_member=True,
         )
     )
 

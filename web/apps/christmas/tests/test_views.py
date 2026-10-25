@@ -38,6 +38,16 @@ def _create_member(**overrides):
     return Member.objects.create(**data)
 
 
+def _create_external_sponsor(**overrides):
+    """Create an active external sponsor registered only for Natal Feliz."""
+    data = {
+        "name": "Padrinho Externo",
+        "registration_type": Member.RegistrationType.CHRISTMAS,
+    }
+    data.update(overrides)
+    return Member.objects.create(**data)
+
+
 def _create_event(**overrides):
     """Create an event with valid default schedule data."""
     data = {
@@ -157,6 +167,45 @@ def test_sponsorship_collection_views_require_staff_access(
     """Only staff users should access event sponsorship collection views."""
     event = _create_event()
     url = reverse(f"christmas:{route_name}", args=[event.pk])
+
+    anonymous_response = client.get(url)
+    assert anonymous_response.status_code == 302
+    assert anonymous_response.headers["Location"].startswith(reverse("account_login"))
+
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    assert client.get(url).status_code == 403
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("route_name", ["sponsor_list", "sponsor_create"])
+def test_sponsor_collection_views_require_staff_access(
+    client,
+    django_user_model,
+    route_name,
+):
+    """Only staff users should access external sponsor collection views."""
+    url = reverse(f"christmas:{route_name}")
+
+    anonymous_response = client.get(url)
+    assert anonymous_response.status_code == 302
+    assert anonymous_response.headers["Location"].startswith(reverse("account_login"))
+
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    assert client.get(url).status_code == 403
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("route_name", ["sponsor_update", "sponsor_remove"])
+def test_sponsor_record_views_require_staff_access(
+    client,
+    django_user_model,
+    route_name,
+):
+    """Only staff users should access external sponsor record views."""
+    sponsor = _create_external_sponsor()
+    url = reverse(f"christmas:{route_name}", args=[sponsor.pk])
 
     anonymous_response = client.get(url)
     assert anonymous_response.status_code == 302
@@ -526,6 +575,213 @@ def test_sponsorship_create_saves_relationship_in_url_event(
         (reverse("christmas:sponsorship_list", args=[event.pk]), 302)
     ]
     assert sponsorship.event == event
+
+
+@pytest.mark.django_db
+def test_sponsorship_create_accepts_external_natal_feliz_sponsor(
+    client,
+    django_user_model,
+):
+    """A special Natal Feliz registration should be accepted as sponsor."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    event = _create_event()
+    sponsor = _create_external_sponsor()
+    child = _create_child()
+
+    response = client.post(
+        reverse("christmas:sponsorship_create", args=[event.pk]),
+        {"sponsor": sponsor.pk, "child": child.pk},
+    )
+
+    assert response.status_code == 302
+    assert ChristmasSponsorship.objects.filter(
+        event=event,
+        sponsor=sponsor,
+        child=child,
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_sponsor_list_shows_only_external_records_and_searches_contact(
+    client,
+    django_user_model,
+):
+    """Sponsor area should list special registrations without church members."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    matching = _create_external_sponsor(
+        name="Joana Externa",
+        email="joana@example.com",
+    )
+    _create_external_sponsor(name="Outra Pessoa")
+    church_member = _create_member(name="Joana da Igreja")
+
+    response = client.get(reverse("christmas:sponsor_list"), {"q": "joana@"})
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "christmas/sponsor_list.html" in [
+        template.name for template in response.templates if template.name
+    ]
+    assert matching.name in content
+    assert "Outra Pessoa" not in content
+    assert church_member.name not in content
+    assert reverse("christmas:sponsor_create") in content
+
+
+@pytest.mark.django_db
+def test_sponsor_create_forces_special_registration_and_honors_local_next(
+    client,
+    django_user_model,
+):
+    """Sponsor creation should persist special flags and return to a local URL."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    event = _create_event()
+    return_url = reverse("christmas:sponsorship_create", args=[event.pk])
+    create_url = reverse("christmas:sponsor_create")
+
+    get_response = client.get(create_url, {"next": return_url})
+    get_content = get_response.content.decode()
+    assert get_response.status_code == 200
+    assert "christmas/sponsor_form.html" in [
+        template.name for template in get_response.templates if template.name
+    ]
+    assert 'name="name"' in get_content
+    assert 'name="phone"' in get_content
+    assert 'name="registration_type"' not in get_content
+
+    response = client.post(
+        create_url,
+        {
+            "name": "Joana Externa",
+            "cpf": "123.456.789-01",
+            "phone": "(11) 99999-9999",
+            "email": "joana@example.com",
+            "is_active": "on",
+            "next": return_url,
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == return_url
+    sponsor = Member.objects.get(name="Joana Externa")
+    assert sponsor.registration_type == Member.RegistrationType.CHRISTMAS
+    assert sponsor.is_church_member is False
+    assert sponsor.include_in_birthday_list is False
+
+
+@pytest.mark.django_db
+def test_sponsor_create_rejects_invalid_contact(client, django_user_model):
+    """Invalid contact data should re-render without creating a sponsor."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("christmas:sponsor_create"),
+        {"name": "", "cpf": "123", "phone": "abc", "is_active": "on"},
+    )
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "Informe um CPF com 11 dígitos." in content
+    assert "Informe um telefone com 8 a 15 dígitos." in content
+    assert not Member.objects.christmas_registrations().exists()
+
+
+@pytest.mark.django_db
+def test_sponsor_update_only_accepts_special_registrations(
+    client,
+    django_user_model,
+):
+    """Sponsor update should edit external records and reject church members."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    sponsor = _create_external_sponsor(phone="11999999999")
+    church_member = _create_member(name="Membro da Igreja")
+    update_url = reverse("christmas:sponsor_update", args=[sponsor.pk])
+
+    get_response = client.get(update_url)
+    assert get_response.status_code == 200
+    assert "christmas/sponsor_form.html" in [
+        template.name for template in get_response.templates if template.name
+    ]
+    assert sponsor.name in get_response.content.decode()
+
+    response = client.post(
+        update_url,
+        {
+            "name": "Padrinho Atualizado",
+            "cpf": "",
+            "phone": "1133334444",
+            "email": "",
+            "is_active": "on",
+            "inactive_reason": "",
+        },
+    )
+
+    assert response.status_code == 302
+    sponsor.refresh_from_db()
+    assert sponsor.name == "Padrinho Atualizado"
+    assert sponsor.phone == "1133334444"
+    assert client.get(
+        reverse("christmas:sponsor_update", args=[church_member.pk])
+    ).status_code == 404
+
+
+@pytest.mark.django_db
+def test_sponsor_update_rejects_inactive_record_without_reason(
+    client,
+    django_user_model,
+):
+    """Invalid sponsor updates should preserve the existing contact data."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    sponsor = _create_external_sponsor(phone="11999999999")
+
+    response = client.post(
+        reverse("christmas:sponsor_update", args=[sponsor.pk]),
+        {
+            "name": "Nome que não será salvo",
+            "cpf": "",
+            "phone": "11999999999",
+            "email": "",
+            "is_active": "",
+            "inactive_reason": "",
+        },
+    )
+
+    assert response.status_code == 200
+    assert "Informe o motivo para inativar o cadastro." in response.content.decode()
+    sponsor.refresh_from_db()
+    assert sponsor.name == "Padrinho Externo"
+
+
+@pytest.mark.django_db
+def test_sponsor_remove_soft_deletes_record_and_preserves_sponsorship(
+    client,
+    django_user_model,
+):
+    """Removing an external sponsor should preserve historical sponsorships."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    sponsor = _create_external_sponsor()
+    sponsorship = _create_sponsorship(sponsor=sponsor)
+    remove_url = reverse("christmas:sponsor_remove", args=[sponsor.pk])
+
+    get_response = client.get(remove_url)
+    assert get_response.status_code == 200
+    assert "christmas/sponsor_confirm_remove.html" in [
+        template.name for template in get_response.templates if template.name
+    ]
+
+    response = client.post(remove_url)
+
+    assert response.status_code == 302
+    assert not Member.objects.filter(pk=sponsor.pk).exists()
+    assert Member.all_objects.filter(pk=sponsor.pk).exists()
+    assert ChristmasSponsorship.objects.filter(pk=sponsorship.pk).exists()
 
 
 @pytest.mark.django_db

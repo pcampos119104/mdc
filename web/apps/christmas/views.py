@@ -1,14 +1,25 @@
 """Views for the Natal Feliz campaign."""
 
+import re
+
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from .forms import ChildForm, ChristmasEventForm, ChristmasSponsorshipForm
+from apps.members.models import Member
+
+from .forms import (
+    ChildForm,
+    ChristmasEventForm,
+    ChristmasSponsorForm,
+    ChristmasSponsorshipForm,
+)
 from .models import Child, ChristmasEvent, ChristmasSponsorship
 from .permissions import christmas_admin_required
 from .services.labels import generate_sponsorship_labels_pdf
@@ -206,6 +217,18 @@ def _sponsorship_form_context(event, form, *, title, submit_label):
     }
 
 
+def _safe_return_url(request, default_route):
+    """Return a local next URL or the named default route."""
+    next_url = request.POST.get("next") or request.GET.get("next", "")
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return reverse(default_route)
+
+
 @method_decorator(christmas_admin_required, name="dispatch")
 class ChristmasSponsorshipCreateView(View):
     """Create a sponsorship inside a Natal Feliz event."""
@@ -345,6 +368,163 @@ class ChristmasSponsorshipRemoveView(View):
             f"Apadrinhamento de {child_name} removido com sucesso.",
         )
         return redirect("christmas:sponsorship_list", event_pk=event.pk)
+
+
+@christmas_admin_required
+def sponsor_list(request):
+    """Display external Natal Feliz sponsors, optionally filtered by contact data."""
+    query = request.GET.get("q", "").strip()
+    query_digits = re.sub(r"\D", "", query)
+    sponsors = Member.objects.christmas_registrations()
+
+    if query:
+        search_filter = (
+            Q(name__icontains=query)
+            | Q(cpf__icontains=query)
+            | Q(phone__icontains=query)
+            | Q(email__icontains=query)
+        )
+        if query_digits:
+            search_filter |= Q(cpf__icontains=query_digits) | Q(
+                phone__icontains=query_digits
+            )
+        sponsors = sponsors.filter(search_filter)
+
+    paginator = Paginator(sponsors, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    return render(
+        request,
+        "christmas/sponsor_list.html",
+        {"page_obj": page_obj, "query": query},
+    )
+
+
+def _sponsor_form_context(form, *, title, submit_label, cancel_url):
+    """Build context shared by external sponsor create and update forms."""
+    return {
+        "form": form,
+        "title": title,
+        "submit_label": submit_label,
+        "cancel_url": cancel_url,
+    }
+
+
+@method_decorator(christmas_admin_required, name="dispatch")
+class ChristmasSponsorCreateView(View):
+    """Create an external sponsor exclusively for Natal Feliz."""
+
+    def get(self, request):
+        """Display the external sponsor creation form."""
+        cancel_url = _safe_return_url(request, "christmas:sponsor_list")
+        return render(
+            request,
+            "christmas/sponsor_form.html",
+            _sponsor_form_context(
+                ChristmasSponsorForm(),
+                title="Novo padrinho",
+                submit_label="Salvar padrinho",
+                cancel_url=cancel_url,
+            ),
+        )
+
+    def post(self, request):
+        """Validate and create an external Natal Feliz sponsor."""
+        cancel_url = _safe_return_url(request, "christmas:sponsor_list")
+        form = ChristmasSponsorForm(request.POST)
+        if form.is_valid():
+            sponsor = form.save()
+            messages.success(
+                request,
+                f"Padrinho {sponsor.name} cadastrado com sucesso.",
+            )
+            return redirect(cancel_url)
+
+        return render(
+            request,
+            "christmas/sponsor_form.html",
+            _sponsor_form_context(
+                form,
+                title="Novo padrinho",
+                submit_label="Salvar padrinho",
+                cancel_url=cancel_url,
+            ),
+        )
+
+
+@method_decorator(christmas_admin_required, name="dispatch")
+class ChristmasSponsorUpdateView(View):
+    """Update an external Natal Feliz sponsor."""
+
+    def get(self, request, pk):
+        """Display the external sponsor update form."""
+        sponsor = get_object_or_404(
+            Member.objects.christmas_registrations(),
+            pk=pk,
+        )
+        return render(
+            request,
+            "christmas/sponsor_form.html",
+            _sponsor_form_context(
+                ChristmasSponsorForm(instance=sponsor),
+                title=f"Editar {sponsor.name}",
+                submit_label="Atualizar padrinho",
+                cancel_url=reverse("christmas:sponsor_list"),
+            ),
+        )
+
+    def post(self, request, pk):
+        """Validate and update an external Natal Feliz sponsor."""
+        sponsor = get_object_or_404(
+            Member.objects.christmas_registrations(),
+            pk=pk,
+        )
+        form = ChristmasSponsorForm(request.POST, instance=sponsor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Padrinho atualizado com sucesso.")
+            return redirect("christmas:sponsor_list")
+
+        return render(
+            request,
+            "christmas/sponsor_form.html",
+            _sponsor_form_context(
+                form,
+                title=f"Editar {sponsor.name}",
+                submit_label="Atualizar padrinho",
+                cancel_url=reverse("christmas:sponsor_list"),
+            ),
+        )
+
+
+@method_decorator(christmas_admin_required, name="dispatch")
+class ChristmasSponsorRemoveView(View):
+    """Soft delete an external Natal Feliz sponsor after confirmation."""
+
+    def get(self, request, pk):
+        """Display the external sponsor removal confirmation page."""
+        sponsor = get_object_or_404(
+            Member.objects.christmas_registrations(),
+            pk=pk,
+        )
+        return render(
+            request,
+            "christmas/sponsor_confirm_remove.html",
+            {"sponsor": sponsor},
+        )
+
+    def post(self, request, pk):
+        """Soft delete an external sponsor and return to its list."""
+        sponsor = get_object_or_404(
+            Member.objects.christmas_registrations(),
+            pk=pk,
+        )
+        sponsor_name = sponsor.name
+        sponsor.delete()
+        messages.success(
+            request,
+            f"Padrinho {sponsor_name} removido da lista com sucesso.",
+        )
+        return redirect("christmas:sponsor_list")
 
 
 @christmas_admin_required

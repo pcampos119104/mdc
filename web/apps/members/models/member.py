@@ -7,13 +7,15 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import Q
 from PIL import Image, ImageOps
 
-from .base import SoftDeleteModel
+from .base import SoftDeleteManager, SoftDeleteModel, SoftDeleteQuerySet
 
 
 MEMBER_PHOTO_MAX_DIMENSION = 512
 MEMBER_PHOTO_JPEG_QUALITY = 85
+CHRISTMAS_REGISTRATION_TYPE = "natal_feliz"
 
 
 def _jpeg_photo_name(name):
@@ -61,8 +63,31 @@ def _resize_member_photo(uploaded_file, name):
     return ContentFile(output.getvalue(), name=_jpeg_photo_name(name))
 
 
+class MemberQuerySet(SoftDeleteQuerySet):
+    """Provide the supported scopes for member and Natal Feliz records."""
+
+    def church_members(self):
+        """Return people who are members of the church."""
+        return self.filter(is_church_member=True)
+
+    def christmas_registrations(self):
+        """Return people registered exclusively for the Natal Feliz campaign."""
+        return self.filter(registration_type=CHRISTMAS_REGISTRATION_TYPE)
+
+    def eligible_christmas_sponsors(self):
+        """Return active church members and active Natal Feliz registrations."""
+        return self.filter(is_active=True).filter(
+            Q(is_church_member=True)
+            | Q(registration_type=CHRISTMAS_REGISTRATION_TYPE)
+        )
+
+
+class MemberManager(SoftDeleteManager.from_queryset(MemberQuerySet)):
+    """Hide removed records while exposing member-specific query scopes."""
+
+
 class Member(SoftDeleteModel):
-    """Store the main registration data for a church member."""
+    """Store registration data for a church member or campaign participant."""
 
     class RegistrationType(models.TextChoices):
         """Allowed registration type values for member records."""
@@ -70,6 +95,7 @@ class Member(SoftDeleteModel):
         LEADERSHIP = "lideranca", "Liderança"
         PASTOR = "pastor", "Pastor"
         MEMBER = "membro", "Membro"
+        CHRISTMAS = CHRISTMAS_REGISTRATION_TYPE, "Cadastro Natal Feliz"
 
     class Classification(models.TextChoices):
         """Allowed service and ministry classification values for members."""
@@ -219,15 +245,43 @@ class Member(SoftDeleteModel):
         help_text="Data e hora da última atualização do cadastro.",
     )
 
+    objects = MemberManager()
+    all_objects = MemberQuerySet.as_manager()
+
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        registration_type=CHRISTMAS_REGISTRATION_TYPE,
+                        is_church_member=False,
+                    )
+                    | (
+                        ~Q(registration_type=CHRISTMAS_REGISTRATION_TYPE)
+                        & Q(is_church_member=True)
+                    )
+                ),
+                name="member_registration_matches_membership",
+            )
+        ]
 
     def __str__(self):
         """Return the member name for admin and shell displays."""
         return self.name
 
     def save(self, *args, **kwargs):
-        """Resize newly uploaded photos before storing the member record."""
+        """Synchronize membership status and resize newly uploaded photos."""
+        self._sync_membership_status()
+
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            update_fields = set(update_fields)
+            update_fields.add("is_church_member")
+            if self.registration_type == self.RegistrationType.CHRISTMAS:
+                update_fields.add("include_in_birthday_list")
+            kwargs["update_fields"] = list(update_fields)
+
         if self.photo and not getattr(self.photo, "_committed", True):
             self.photo = _resize_member_photo(self.photo.file, self.photo.name)
 
@@ -255,6 +309,7 @@ class Member(SoftDeleteModel):
     def clean(self):
         """Validate inactive reason and selected classifications."""
         super().clean()
+        self._sync_membership_status()
 
         inactive_reason = str(getattr(self, "inactive_reason", "") or "").strip()
         if not self.is_active and not inactive_reason:
@@ -270,3 +325,12 @@ class Member(SoftDeleteModel):
             raise ValidationError(
                 {"classifications": "Selecione apenas classificações válidas."}
             )
+
+    def _sync_membership_status(self):
+        """Derive church membership flags from the registration type."""
+        is_christmas_registration = (
+            self.registration_type == self.RegistrationType.CHRISTMAS
+        )
+        self.is_church_member = not is_christmas_registration
+        if is_christmas_registration:
+            self.include_in_birthday_list = False

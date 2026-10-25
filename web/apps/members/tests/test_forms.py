@@ -117,6 +117,23 @@ def test_member_form_requires_registration_type():
     assert "registration_type" in form.errors
 
 
+def test_member_form_saves_natal_feliz_registration_as_non_member():
+    """Selecting Cadastro Natal Feliz should derive the non-member flags."""
+    form = MemberForm(
+        data={
+            "name": "Padrinho externo",
+            "registration_type": Member.RegistrationType.CHRISTMAS,
+            "include_in_birthday_list": "on",
+            "is_active": "on",
+        }
+    )
+
+    assert form.is_valid(), form.errors
+    sponsor = form.save()
+    assert sponsor.is_church_member is False
+    assert sponsor.include_in_birthday_list is False
+
+
 def test_member_form_requires_reason_when_inactive():
     """Member form should require a reason when the member is inactive."""
     form = MemberForm(
