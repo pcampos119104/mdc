@@ -16,6 +16,7 @@ def test_child_can_be_created_with_required_fields():
     child = Child.objects.create(
         name="Ana Silva",
         mother_name="Maria Silva",
+        contact_phone="41999991234",
         birth_date=date(2018, 5, 12),
         clothing_size=8,
     )
@@ -25,6 +26,7 @@ def test_child_can_be_created_with_required_fields():
     assert child.pk is not None
     assert child.name == "Ana Silva"
     assert child.mother_name == "Maria Silva"
+    assert child.contact_phone == "41999991234"
     assert child.birth_date == date(2018, 5, 12)
     assert child.clothing_size == 8
     assert str(child) == "Ana Silva"
@@ -78,9 +80,32 @@ def test_child_fields_expose_help_texts():
         == "Data de nascimento da criança."
     )
     assert (
+        Child._meta.get_field("contact_phone").help_text
+        == "Telefone dos pais ou responsáveis para contato."
+    )
+    assert (
         Child._meta.get_field("clothing_size").help_text
         == "Número do tamanho da roupa usada pela criança."
     )
+
+
+@pytest.mark.django_db
+def test_child_rejects_invalid_contact_phone():
+    """Child should reject contact phones outside the supported digit range."""
+    child = Child(
+        name="Ana Silva",
+        mother_name="Maria Silva",
+        contact_phone="1234567",
+        birth_date=date(2018, 5, 12),
+        clothing_size=8,
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        child.full_clean()
+
+    assert exc_info.value.message_dict["contact_phone"] == [
+        "Informe um telefone com 8 a 15 dígitos."
+    ]
 
 
 @pytest.mark.django_db

@@ -24,6 +24,7 @@ def _create_child(**overrides):
     data = {
         "name": "Ana Silva",
         "mother_name": "Maria Silva",
+        "contact_phone": "41999991234",
         "birth_date": date(2018, 5, 12),
         "clothing_size": 8,
     }
@@ -945,27 +946,32 @@ def test_sponsorship_detail_returns_404_for_another_event(
 
 
 @pytest.mark.django_db
-def test_child_list_renders_and_filters_by_child_or_mother_name(
+def test_child_list_renders_and_filters_by_contact_phone(
     client,
     django_user_model,
 ):
-    """Child list should render and search child and mother names."""
+    """Child list should render and search normalized contact phone digits."""
     staff_user = _create_user(django_user_model, is_staff=True)
     client.force_login(staff_user)
     matching_child = Child.objects.create(
         name="Ana Silva",
         mother_name="Maria Oliveira",
+        contact_phone="41999991234",
         birth_date=date(2018, 5, 12),
         clothing_size=8,
     )
     other_child = Child.objects.create(
         name="Beatriz Souza",
         mother_name="Clara Souza",
+        contact_phone="41988885678",
         birth_date=date(2019, 6, 10),
         clothing_size=10,
     )
 
-    response = client.get(reverse("christmas:child_list"), {"q": "Oliveira"})
+    response = client.get(
+        reverse("christmas:child_list"),
+        {"q": "(41) 99999-1234"},
+    )
     content = response.content.decode()
 
     assert response.status_code == 200
@@ -976,6 +982,7 @@ def test_child_list_renders_and_filters_by_child_or_mother_name(
     assert other_child.name not in content
     assert "12/05/2018" in content
     assert "Tamanho da roupa" in content
+    assert matching_child.contact_phone in content
     assert reverse("christmas:child_detail", args=[matching_child.pk]) in content
     assert reverse("christmas:child_update", args=[matching_child.pk]) in content
     assert reverse("christmas:child_remove", args=[matching_child.pk]) in content
@@ -1024,8 +1031,11 @@ def test_child_create_page_renders_form(client, django_user_model):
     ]
     assert 'name="birth_date"' in content
     assert 'name="clothing_size"' in content
+    assert 'name="contact_phone"' in content
     assert 'placeholder="dd/mm/aaaa"' in content
     assert 'x-data="dateMask"' in content
+    assert 'x-data="phoneMask"' in content
+    assert 'x-init="format({ target: $el })"' in content
     assert '@input="format($event)"' in content
 
 
@@ -1040,6 +1050,7 @@ def test_child_create_saves_and_redirects_to_list(client, django_user_model):
         {
             "name": "Ana Silva",
             "mother_name": "Maria Silva",
+            "contact_phone": "(41) 99999-1234",
             "birth_date": "12/05/2018",
             "clothing_size": "8",
         },
@@ -1053,6 +1064,7 @@ def test_child_create_saves_and_redirects_to_list(client, django_user_model):
     assert child.name == "Ana Silva"
     assert child.birth_date == date(2018, 5, 12)
     assert child.clothing_size == 8
+    assert child.contact_phone == "41999991234"
 
 
 @pytest.mark.django_db
@@ -1087,6 +1099,7 @@ def test_child_detail_renders_registration(client, django_user_model):
     ]
     assert child.name in content
     assert child.mother_name in content
+    assert child.contact_phone in content
     assert "12/05/2018" in content
     assert "Tamanho da roupa" in content
     assert ">8<" in content
@@ -1111,6 +1124,7 @@ def test_child_update_renders_existing_data_and_saves_changes(
     assert 'value="12/05/2018"' in get_content
     assert 'name="clothing_size"' in get_content
     assert 'value="8"' in get_content
+    assert 'value="41999991234"' in get_content
     assert f"Editar {child.name}" in get_content
 
     post_response = client.post(
@@ -1118,6 +1132,7 @@ def test_child_update_renders_existing_data_and_saves_changes(
         {
             "name": "Ana Silva Atualizada",
             "mother_name": "Maria Oliveira",
+            "contact_phone": "(41) 98888-5678",
             "birth_date": "20/06/2018",
             "clothing_size": "10",
         },
@@ -1136,6 +1151,7 @@ def test_child_update_renders_existing_data_and_saves_changes(
     assert child.mother_name == "Maria Oliveira"
     assert child.birth_date == date(2018, 6, 20)
     assert child.clothing_size == 10
+    assert child.contact_phone == "41988885678"
 
 
 @pytest.mark.django_db
@@ -1164,12 +1180,14 @@ def test_child_remove_page_renders_confirmation(client, django_user_model):
     child = _create_child()
 
     response = client.get(reverse("christmas:child_remove", args=[child.pk]))
+    content = response.content.decode()
 
     assert response.status_code == 200
     assert "christmas/child_confirm_remove.html" in [
         template.name for template in response.templates if template.name
     ]
-    assert "preserva o cadastro no banco" in response.content.decode()
+    assert "preserva o cadastro no banco" in content
+    assert child.contact_phone in content
 
 
 @pytest.mark.django_db

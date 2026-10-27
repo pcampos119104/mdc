@@ -29,7 +29,7 @@
         <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end">
           <div class="flex-1">
             <label for="child-search" class="mb-2 block text-sm font-medium text-slate-900">Buscar crianças</label>
-            <input type="search" id="child-search" name="q" value="{{ query }}" placeholder="Nome da criança ou da mãe" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+            <input type="search" id="child-search" name="q" value="{{ query }}" placeholder="Nome da criança, da mãe ou telefone" class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
           </div>
           <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Buscar</button>
           {% if query %}
@@ -45,6 +45,7 @@
               <tr>
                 <th scope="col" class="px-5 py-4 font-semibold">Criança</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Mãe</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Telefone</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Data de nascimento</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Tamanho da roupa</th>
                 <th scope="col" class="px-5 py-4 text-right font-semibold">Ações</th>
@@ -62,6 +63,7 @@
                     </div>
                   </td>
                   <td class="px-5 py-4">{{ child.mother_name }}</td>
+                  <td class="px-5 py-4">{{ child.contact_phone|default:"Não informado" }}</td>
                   <td class="px-5 py-4">{{ child.birth_date|date:"d/m/Y" }}</td>
                   <td class="px-5 py-4">{{ child.clothing_size|default_if_none:"Não informado" }}</td>
                   <td class="px-5 py-4 text-right">
@@ -74,7 +76,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="px-5 py-12 text-center">
+                  <td colspan="6" class="px-5 py-12 text-center">
                     <p class="text-base font-semibold text-slate-950">Nenhuma criança encontrada</p>
                     <p class="mt-2 text-sm text-slate-500">Crie um novo cadastro ou ajuste a busca.</p>
                   </td>

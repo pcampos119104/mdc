@@ -21,6 +21,7 @@ def test_child_form_accepts_brazilian_date_and_saves_child():
         data={
             "name": "Ana Silva",
             "mother_name": "Maria Silva",
+            "contact_phone": "(41) 99999-1234",
             "birth_date": "12/05/2018",
             "clothing_size": "8",
         }
@@ -30,6 +31,7 @@ def test_child_form_accepts_brazilian_date_and_saves_child():
     child = form.save()
     assert child.birth_date == date(2018, 5, 12)
     assert child.clothing_size == 8
+    assert child.contact_phone == "41999991234"
 
 
 def test_christmas_forms_configure_date_mask_widgets():
@@ -84,6 +86,24 @@ def test_child_form_rejects_non_numeric_clothing_size():
 
     assert not form.is_valid()
     assert form.errors["clothing_size"] == ["Informe um tamanho de roupa válido."]
+
+
+def test_child_form_rejects_invalid_contact_phone():
+    """Child form should reject a contact phone outside the supported length."""
+    form = ChildForm(
+        data={
+            "name": "Ana Silva",
+            "mother_name": "Maria Silva",
+            "contact_phone": "123-4567",
+            "birth_date": "12/05/2018",
+            "clothing_size": "8",
+        }
+    )
+
+    assert not form.is_valid()
+    assert form.errors["contact_phone"] == [
+        "Informe um telefone com 8 a 15 dígitos."
+    ]
 
 
 @pytest.mark.django_db

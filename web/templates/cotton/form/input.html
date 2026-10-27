@@ -26,6 +26,10 @@
             {% if field.field.widget.attrs.date_mask %}
                 x-data="dateMask"
                 @input="format($event)"
+            {% elif field.field.widget.attrs.phone_mask %}
+                x-data="phoneMask"
+                x-init="format({ target: $el })"
+                @input="format($event)"
             {% endif %}
             {% if input_type == "file" %}
             {% elif input_type == "time" %}

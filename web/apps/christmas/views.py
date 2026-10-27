@@ -529,14 +529,18 @@ class ChristmasSponsorRemoveView(View):
 
 @christmas_admin_required
 def child_list(request):
-    """Display Natal Feliz children, optionally filtered by name."""
+    """Display children, optionally filtered by name or contact phone."""
     query = request.GET.get("q", "").strip()
+    query_digits = re.sub(r"\D", "", query)
     children = Child.objects.all()
 
     if query:
-        children = children.filter(
+        search_filter = (
             Q(name__icontains=query) | Q(mother_name__icontains=query)
         )
+        if query_digits:
+            search_filter |= Q(contact_phone__icontains=query_digits)
+        children = children.filter(search_filter)
 
     paginator = Paginator(children, 20)
     page_obj = paginator.get_page(request.GET.get("page"))

@@ -26,12 +26,13 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="border-b border-slate-100 pb-4">
             <h2 class="text-lg font-semibold text-slate-950">Dados da criança</h2>
-            <p class="mt-1 text-sm text-slate-500">Todos os campos são obrigatórios.</p>
+            <p class="mt-1 text-sm text-slate-500">O telefone de contato é opcional.</p>
           </div>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
             <c-form.input :field="form.name" class="sm:col-span-2" />
             <c-form.input :field="form.mother_name" class="sm:col-span-2" />
+            <c-form.input :field="form.contact_phone" class="sm:col-span-2" />
             <c-form.input :field="form.birth_date" />
             <c-form.input :field="form.clothing_size" />
           </div>

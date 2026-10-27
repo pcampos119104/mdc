@@ -20,10 +20,11 @@ def test_child_is_registered_in_admin():
     assert child_admin.list_display == (
         "name",
         "mother_name",
+        "contact_phone",
         "birth_date",
         "clothing_size",
     )
-    assert child_admin.search_fields == ("name", "mother_name")
+    assert child_admin.search_fields == ("name", "mother_name", "contact_phone")
 
 
 @pytest.mark.django_db

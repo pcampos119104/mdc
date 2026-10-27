@@ -15,6 +15,7 @@
         <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
           <p><span class="font-semibold text-slate-950">Nome:</span> {{ child.name }}</p>
           <p class="mt-2"><span class="font-semibold text-slate-950">Mãe:</span> {{ child.mother_name }}</p>
+          <p class="mt-2"><span class="font-semibold text-slate-950">Telefone:</span> {{ child.contact_phone|default:"Não informado" }}</p>
           <p class="mt-2"><span class="font-semibold text-slate-950">Nascimento:</span> {{ child.birth_date|date:"d/m/Y" }}</p>
           <p class="mt-2"><span class="font-semibold text-slate-950">Tamanho da roupa:</span> {{ child.clothing_size|default_if_none:"Não informado" }}</p>
         </div>

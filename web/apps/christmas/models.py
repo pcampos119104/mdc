@@ -1,5 +1,6 @@
 """Models for the Natal Feliz campaign."""
 
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 
@@ -21,6 +22,18 @@ class Child(SoftDeleteModel):
     mother_name = models.CharField(
         max_length=255,
         help_text="Nome completo da mãe da criança.",
+    )
+    contact_phone = models.CharField(
+        max_length=15,
+        blank=True,
+        default="",
+        validators=[
+            RegexValidator(
+                regex=r"^\d{8,15}$",
+                message="Informe um telefone com 8 a 15 dígitos.",
+            )
+        ],
+        help_text="Telefone dos pais ou responsáveis para contato.",
     )
     birth_date = models.DateField(
         help_text="Data de nascimento da criança.",

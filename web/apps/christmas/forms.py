@@ -41,9 +41,32 @@ def _time_input():
 class ChildForm(forms.ModelForm):
     """Validate the registration data for a Natal Feliz child."""
 
+    contact_phone = forms.CharField(
+        required=False,
+        max_length=20,
+        label="Telefone de contato",
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "tel",
+                "inputmode": "tel",
+                "phone_mask": True,
+                "pattern": "[0-9()+ -]{8,20}",
+                "placeholder": "(00) 00000-0000",
+                "title": "Informe um telefone com 8 a 15 dígitos.",
+                "type": "tel",
+            }
+        ),
+    )
+
     class Meta:
         model = Child
-        fields = ["name", "mother_name", "birth_date", "clothing_size"]
+        fields = [
+            "name",
+            "mother_name",
+            "contact_phone",
+            "birth_date",
+            "clothing_size",
+        ]
         labels = {
             "name": "Nome completo da criança",
             "mother_name": "Nome completo da mãe",
@@ -74,6 +97,17 @@ class ChildForm(forms.ModelForm):
         """Configure parsing for the Brazilian birth date input."""
         super().__init__(*args, **kwargs)
         self.fields["birth_date"].input_formats = ["%d/%m/%Y"]
+
+    def clean_contact_phone(self):
+        """Store contact phone numbers as digits while accepting common masks."""
+        phone = self.cleaned_data.get("contact_phone")
+        if not phone:
+            return ""
+
+        digits = _only_digits(phone)
+        if not 8 <= len(digits) <= 15:
+            raise forms.ValidationError("Informe um telefone com 8 a 15 dígitos.")
+        return digits
 
 
 class ChristmasEventForm(forms.ModelForm):
