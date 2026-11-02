@@ -82,10 +82,13 @@ def test_labels_html_contains_complete_label_information():
     assert '<p class="sponsorship-number">Nº 1</p>' in html
     assert html.count('<p class="event-name">Natal Feliz 2026</p>') == 13
     assert '<h2 class="child-name">CRIANÇA 1</h2>' in html
-    assert "font-size: 18pt" in html
+    assert "font-size: 28pt" in html
+    assert "margin: 6mm 0 3.75mm" in html
+    assert "font-size: 14.5pt" in html
     assert "text-transform: uppercase" in html
-    assert "width: 26mm" in html
-    assert "height: 26mm" in html
+    assert "width: 21mm" in html
+    assert "height: 21mm" in html
+    assert "padding: 3mm 0" in html
     assert "<strong>Mãe:</strong> Mãe 1" in html
     assert "<strong>Padrinho:</strong> Padrinho 1" in html
     assert "<strong>Idade:</strong> 8 anos" in html
