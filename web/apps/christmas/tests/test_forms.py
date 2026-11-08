@@ -207,6 +207,89 @@ def test_sponsorship_form_lists_active_members_and_natal_feliz_registrations():
 
 
 @pytest.mark.django_db
+def test_sponsorship_form_lists_only_children_available_for_event():
+    """Child choices should omit children already sponsored in the event."""
+    event = ChristmasEvent.objects.create(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time="14:30",
+    )
+    other_event = ChristmasEvent.objects.create(
+        name="Natal Feliz 2025",
+        event_date=date(2025, 12, 20),
+        event_time="14:30",
+    )
+    sponsor = Member.objects.create(name="João Santos")
+    sponsored_child = Child.objects.create(
+        name="Ana Silva",
+        mother_name="Maria Silva",
+        birth_date=date(2018, 5, 12),
+    )
+    available_child = Child.objects.create(
+        name="Beatriz Souza",
+        mother_name="Clara Souza",
+        birth_date=date(2019, 6, 15),
+    )
+    child_from_other_event = Child.objects.create(
+        name="Carla Lima",
+        mother_name="Paula Lima",
+        birth_date=date(2020, 7, 18),
+    )
+    ChristmasSponsorship.objects.create(
+        event=event,
+        sponsor=sponsor,
+        child=sponsored_child,
+    )
+    ChristmasSponsorship.objects.create(
+        event=other_event,
+        sponsor=sponsor,
+        child=child_from_other_event,
+    )
+
+    form = ChristmasSponsorshipForm(event=event)
+
+    assert list(form.fields["child"].queryset) == [
+        available_child,
+        child_from_other_event,
+    ]
+
+
+@pytest.mark.django_db
+def test_sponsorship_form_keeps_current_child_available_when_editing():
+    """Editing should retain the current child while omitting other sponsored ones."""
+    event = ChristmasEvent.objects.create(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time="14:30",
+    )
+    sponsor = Member.objects.create(name="João Santos")
+    current_child = Child.objects.create(
+        name="Ana Silva",
+        mother_name="Maria Silva",
+        birth_date=date(2018, 5, 12),
+    )
+    other_child = Child.objects.create(
+        name="Beatriz Souza",
+        mother_name="Clara Souza",
+        birth_date=date(2019, 6, 15),
+    )
+    sponsorship = ChristmasSponsorship.objects.create(
+        event=event,
+        sponsor=sponsor,
+        child=current_child,
+    )
+    ChristmasSponsorship.objects.create(
+        event=event,
+        sponsor=Member.objects.create(name="Paulo Lima"),
+        child=other_child,
+    )
+
+    form = ChristmasSponsorshipForm(instance=sponsorship, event=event)
+
+    assert list(form.fields["child"].queryset) == [current_child]
+
+
+@pytest.mark.django_db
 def test_christmas_sponsor_form_normalizes_contact_and_forces_special_type():
     """External sponsor form should save a contact-only Natal Feliz registration."""
     form = ChristmasSponsorForm(

@@ -167,14 +167,22 @@ class ChristmasSponsorshipForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        """Limit sponsors to eligible active people and order form choices."""
+        """Limit sponsors and show only children available for the event."""
         self.event = kwargs.pop("event")
         super().__init__(*args, **kwargs)
         self.instance.event = self.event
         self.fields["sponsor"].queryset = (
             Member.objects.eligible_christmas_sponsors().order_by("name")
         )
-        self.fields["child"].queryset = Child.objects.order_by("name")
+        unavailable_children = ChristmasSponsorship.objects.filter(event=self.event)
+        if self.instance.pk:
+            unavailable_children = unavailable_children.exclude(pk=self.instance.pk)
+        self.fields["child"].queryset = Child.objects.exclude(
+            pk__in=unavailable_children.values("child_id")
+        ).order_by("name")
+        self.fields["child"].error_messages["invalid_choice"] = (
+            "Esta criança já possui um padrinho neste evento."
+        )
 
     def clean(self):
         """Ensure a child has only one sponsor in the event."""
