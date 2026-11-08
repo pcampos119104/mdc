@@ -32,9 +32,37 @@
             {% if form.login.errors %}<p class="mt-2 text-sm text-red-600">{{ form.login.errors|striptags }}</p>{% endif %}
           </div>
 
-          <div>
+          <div
+            x-data="{ showPassword: false, capsLockOn: false }"
+            @keydown.window="capsLockOn = $event.getModifierState('CapsLock')"
+            @keyup.window="capsLockOn = $event.getModifierState('CapsLock')"
+          >
             <label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-900">Senha</label>
-            <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" autocomplete="current-password" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+            <div class="relative">
+              <input :type="showPassword ? 'text' : 'password'" type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" autocomplete="current-password" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-3 pr-12 text-sm text-slate-900 focus:border-blue-600 focus:ring-blue-600">
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 flex items-center rounded-r-lg px-3 text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-600"
+                @click="showPassword = !showPassword"
+                :aria-label="showPassword ? 'Esconder senha' : 'Mostrar senha'"
+                :aria-pressed="showPassword"
+                aria-controls="{{ form.password.id_for_label }}"
+              >
+                <svg x-show="!showPassword" class="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1 1 0 0 1 0-.64C3.42 7.51 7.35 4.5 12 4.5s8.58 3.01 9.96 7.18a1 1 0 0 1 0 .64C20.58 16.49 16.65 19.5 12 19.5S3.42 16.49 2.04 12.32Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg x-show="showPassword" x-cloak class="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.58 10.59A2 2 0 0 0 13.41 13.4M9.88 4.56A10.8 10.8 0 0 1 12 4.35c4.65 0 8.58 3.01 9.96 7.18a1 1 0 0 1 0 .64 10.7 10.7 0 0 1-2.31 3.95M6.23 6.24a10.67 10.67 0 0 0-4.19 5.44 1 1 0 0 0 0 .64C3.42 16.49 7.35 19.5 12 19.5c1.53 0 2.98-.33 4.29-.92"></path>
+                </svg>
+              </button>
+            </div>
+            <p x-show="capsLockOn" x-cloak class="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-700" role="status" aria-live="polite">
+              <svg class="h-4 w-4 shrink-0" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.49 3.3a1.75 1.75 0 0 1 3.02 0l6.2 10.66A1.75 1.75 0 0 1 16.2 16.6H3.8a1.75 1.75 0 0 1-1.51-2.64L8.49 3.3ZM10 7a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 7Zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"></path>
+              </svg>
+              Caps Lock está ativado
+            </p>
             {% if form.password.errors %}<p class="mt-2 text-sm text-red-600">{{ form.password.errors|striptags }}</p>{% endif %}
           </div>
 

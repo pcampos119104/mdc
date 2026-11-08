@@ -15,6 +15,22 @@ def test_login_page_renders(client):
 
 
 @pytest.mark.django_db
+def test_login_page_renders_password_controls(client):
+    """Login page should render accessible password and Caps Lock controls."""
+    response = client.get(reverse("account_login"))
+
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert ":type=\"showPassword ? 'text' : 'password'\"" in content
+    assert "Mostrar senha" in content
+    assert 'aria-controls="id_password"' in content
+    assert "getModifierState('CapsLock')" in content
+    assert "Caps Lock está ativado" in content
+    assert 'role="status"' in content
+
+
+@pytest.mark.django_db
 def test_login_accepts_email(client, django_user_model):
     """Users should be able to authenticate with their email address."""
     password = "secret-pass-123"
