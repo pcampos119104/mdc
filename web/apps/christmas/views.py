@@ -22,7 +22,10 @@ from .forms import (
 )
 from .models import Child, ChristmasEvent, ChristmasSponsorship
 from .permissions import christmas_admin_required
-from .services.labels import generate_sponsorship_labels_pdf
+from .services.labels import (
+    generate_sponsorship_checklist_pdf,
+    generate_sponsorship_labels_pdf,
+)
 
 
 @christmas_admin_required
@@ -118,6 +121,24 @@ def event_labels_pdf(request, pk):
     response = HttpResponse(pdf_content, content_type="application/pdf")
     response["Content-Disposition"] = (
         f'inline; filename="natal-feliz-evento-{event.pk}-etiquetas.pdf"'
+    )
+    return response
+
+
+@christmas_admin_required
+def event_checklist_pdf(request, pk):
+    """Generate a printable checklist PDF for all event sponsorships."""
+    event = get_object_or_404(ChristmasEvent, pk=pk)
+    sponsorships = list(
+        event.sponsorships.select_related("sponsor", "child").order_by("pk")
+    )
+    if not sponsorships:
+        raise Http404("Evento sem apadrinhamentos para gerar a conferência.")
+
+    pdf_content = generate_sponsorship_checklist_pdf(event, sponsorships)
+    response = HttpResponse(pdf_content, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'inline; filename="natal-feliz-evento-{event.pk}-conferencia.pdf"'
     )
     return response
 

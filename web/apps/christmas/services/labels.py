@@ -1,4 +1,4 @@
-"""PDF label generation for Natal Feliz sponsorships."""
+"""Printable PDF generation for Natal Feliz sponsorships."""
 
 import base64
 from pathlib import Path
@@ -22,6 +22,15 @@ def calculate_age_on_date(birth_date, reference_date):
 
 def build_sponsorship_label_pages(event, sponsorships):
     """Return sponsorship label entries grouped into pages of six."""
+    entries = build_sponsorship_entries(event, sponsorships)
+    return [
+        entries[index : index + LABELS_PER_PAGE]
+        for index in range(0, len(entries), LABELS_PER_PAGE)
+    ]
+
+
+def build_sponsorship_entries(event, sponsorships):
+    """Return numbered printable entries for the given sponsorships."""
     entries = [
         {
             "number": number,
@@ -36,10 +45,7 @@ def build_sponsorship_label_pages(event, sponsorships):
         }
         for number, sponsorship in enumerate(sponsorships, start=1)
     ]
-    return [
-        entries[index : index + LABELS_PER_PAGE]
-        for index in range(0, len(entries), LABELS_PER_PAGE)
-    ]
+    return entries
 
 
 def church_logo_data_uri():
@@ -66,9 +72,30 @@ def render_sponsorship_labels_html(event, sponsorships):
 
 def generate_sponsorship_labels_pdf(event, sponsorships):
     """Generate an A4 portrait PDF containing six sponsorship labels per page."""
+    return _generate_a4_pdf(render_sponsorship_labels_html(event, sponsorships))
+
+
+def render_sponsorship_checklist_html(event, sponsorships):
+    """Render a compact printable checklist for an event's sponsorships."""
+    return render_to_string(
+        "christmas/sponsorship_checklist_pdf.html",
+        {
+            "event": event,
+            "logo_data_uri": church_logo_data_uri(),
+            "entries": build_sponsorship_entries(event, sponsorships),
+        },
+    )
+
+
+def generate_sponsorship_checklist_pdf(event, sponsorships):
+    """Generate an A4 portrait checklist PDF for event sponsorships."""
+    return _generate_a4_pdf(render_sponsorship_checklist_html(event, sponsorships))
+
+
+def _generate_a4_pdf(html):
+    """Convert standalone HTML into an A4 portrait PDF using Chromium."""
     from playwright.sync_api import sync_playwright
 
-    html = render_sponsorship_labels_html(event, sponsorships)
     browser = None
     with sync_playwright() as playwright:
         try:

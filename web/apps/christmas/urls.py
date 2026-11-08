@@ -16,6 +16,11 @@ urlpatterns = [
         name="event_labels_pdf",
     ),
     path(
+        "events/<int:pk>/checklist/pdf/",
+        views.event_checklist_pdf,
+        name="event_checklist_pdf",
+    ),
+    path(
         "events/<int:pk>/edit/",
         views.ChristmasEventUpdateView.as_view(),
         name="event_update",

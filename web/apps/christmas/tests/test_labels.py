@@ -57,6 +57,22 @@ def test_label_numbers_are_sequential_regardless_of_sponsorship_ids():
     ]
 
 
+def test_checklist_entries_match_the_labels_order_and_information():
+    """Checklist entries should reuse the exact ordered data printed on labels."""
+    event = SimpleNamespace(event_date=date(2026, 12, 20))
+    sponsorships = [_sponsorship(number) for number in (8, 3, 15)]
+
+    entries = labels.build_sponsorship_entries(event, sponsorships)
+    label_entries = [
+        entry
+        for page in labels.build_sponsorship_label_pages(event, sponsorships)
+        for entry in page
+    ]
+
+    assert entries == label_entries
+    assert [entry["number"] for entry in entries] == [1, 2, 3]
+
+
 def test_label_formats_each_word_of_sponsor_name():
     """Sponsor names should be printed with title-style capitalization."""
     event = SimpleNamespace(event_date=date(2026, 12, 20))
@@ -129,6 +145,52 @@ def test_labels_html_omits_empty_event_note():
     )
 
     html = labels.render_sponsorship_labels_html(event, [_sponsorship(1)])
+
+    assert "<strong>Observação:</strong>" not in html
+
+
+def test_checklist_html_contains_compact_conference_blocks():
+    """Rendered checklist should show event data once and one marked block per item."""
+    event = SimpleNamespace(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time=time(14, 30),
+        label_note="Entregar o presente sem embalagem.",
+    )
+
+    html = labels.render_sponsorship_checklist_html(
+        event,
+        [_sponsorship(number) for number in range(1, 4)],
+    )
+
+    assert html.count('<article class="checklist-entry">') == 3
+    assert html.count("Lista de conferência") == 2
+    assert html.count("Natal Feliz 2026") == 2
+    assert html.count("Entregar o presente sem embalagem.") == 1
+    assert html.count("Conferido</span>") == 3
+    assert '<p class="entry-number">Nº 1</p>' in html
+    assert '<h2 class="child-name">CRIANÇA 1</h2>' in html
+    assert "<strong>Mãe:</strong> Mãe 1" in html
+    assert "<strong>Padrinho:</strong> Padrinho 1" in html
+    assert "<strong>Idade:</strong> 8 anos" in html
+    assert "<strong>Tamanho da roupa:</strong> 8" in html
+    assert "<strong>Data:</strong> 20/12/2026" in html
+    assert "<strong>Horário:</strong> 14:30" in html
+    assert "break-inside: avoid-page" in html
+    assert "page-break-inside: avoid" in html
+    assert 'src="data:image/webp;base64,' in html
+
+
+def test_checklist_html_omits_empty_event_note():
+    """Checklist header should omit the observation when none was provided."""
+    event = SimpleNamespace(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 20),
+        event_time=time(14, 30),
+        label_note="",
+    )
+
+    html = labels.render_sponsorship_checklist_html(event, [_sponsorship(1)])
 
     assert "<strong>Observação:</strong>" not in html
 

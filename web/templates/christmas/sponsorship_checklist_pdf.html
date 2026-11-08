@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <title>Lista de conferência — {{ event.name }}</title>
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        color: #111;
+      }
+
+      .report-header {
+        display: grid;
+        grid-template-columns: 24mm 1fr;
+        gap: 5mm;
+        align-items: center;
+        margin-bottom: 7mm;
+        padding-bottom: 5mm;
+        border-bottom: 2px solid #c62828;
+      }
+
+      .church-logo {
+        width: 24mm;
+        height: 24mm;
+        object-fit: contain;
+      }
+
+      h1 {
+        margin: 0;
+        color: #c62828;
+        font-size: 18pt;
+        line-height: 1.2;
+      }
+
+      .event-name {
+        margin: 1mm 0 2mm;
+        font-size: 12pt;
+        font-weight: 700;
+      }
+
+      .event-details,
+      .event-note {
+        margin: 0;
+        font-size: 9.5pt;
+        line-height: 1.35;
+      }
+
+      .event-note {
+        margin-top: 1mm;
+      }
+
+      .checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4mm;
+      }
+
+      .checklist-entry {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+        border: 1px solid #777;
+        padding: 3mm;
+      }
+
+      .entry-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 3mm;
+        margin-bottom: 2mm;
+        padding-bottom: 2mm;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .entry-number {
+        margin: 0;
+        color: #c62828;
+        font-size: 15pt;
+        font-weight: 700;
+      }
+
+      .checked-field {
+        display: flex;
+        align-items: center;
+        gap: 1.5mm;
+        font-size: 9pt;
+        font-weight: 700;
+      }
+
+      .check-box {
+        display: inline-block;
+        width: 4mm;
+        height: 4mm;
+        border: 1px solid #111;
+      }
+
+      .child-name {
+        margin: 0 0 2mm;
+        font-size: 11pt;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+
+      .entry-details {
+        display: grid;
+        gap: 1mm;
+      }
+
+      .entry-details p {
+        margin: 0;
+        font-size: 9pt;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="report-header">
+      <img class="church-logo" src="{{ logo_data_uri }}" alt="Logo da Comuna Bristol">
+      <div>
+        <h1>Lista de conferência</h1>
+        <p class="event-name">{{ event.name }}</p>
+        <p class="event-details"><strong>Data:</strong> {{ event.event_date|date:"d/m/Y" }} &nbsp; <strong>Horário:</strong> {{ event.event_time|time:"H:i" }}</p>
+        {% if event.label_note %}
+          <p class="event-note"><strong>Observação:</strong> {{ event.label_note }}</p>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="checklist">
+      {% for entry in entries %}
+        <article class="checklist-entry">
+          <header class="entry-header">
+            <p class="entry-number">Nº {{ entry.number }}</p>
+            <span class="checked-field"><span class="check-box" aria-hidden="true"></span> Conferido</span>
+          </header>
+          <h2 class="child-name">{{ entry.child_name|upper }}</h2>
+          <div class="entry-details">
+            <p><strong>Mãe:</strong> {{ entry.mother_name }}</p>
+            <p><strong>Padrinho:</strong> {{ entry.sponsor_name }}</p>
+            <p><strong>Idade:</strong> {{ entry.age }} {% if entry.age == 1 %}ano{% else %}anos{% endif %}</p>
+            <p><strong>Tamanho da roupa:</strong> {{ entry.clothing_size|default_if_none:"Não informado" }}</p>
+          </div>
+        </article>
+      {% endfor %}
+    </main>
+  </body>
+</html>

@@ -342,6 +342,7 @@ def test_event_detail_and_update(client, django_user_model):
     assert "Entregar o presente sem embalagem." in detail_content
     assert reverse("christmas:sponsorship_list", args=[event.pk]) in detail_content
     assert "Gerar etiquetas" in detail_content
+    assert "Gerar lista de conferência" in detail_content
     assert 'aria-disabled="true"' in detail_content
 
     update_url = reverse("christmas:event_update", args=[event.pk])
@@ -389,6 +390,31 @@ def test_event_detail_links_to_labels_pdf_when_sponsorships_exist(
 
     assert response.status_code == 200
     assert f'href="{labels_url}" target="_blank" rel="noopener noreferrer"' in content
+
+
+@pytest.mark.django_db
+def test_event_detail_links_to_checklist_pdf_when_sponsorships_exist(
+    client,
+    django_user_model,
+):
+    """Event detail should open its conference checklist in a new browser tab."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    sponsorship = _create_sponsorship()
+
+    response = client.get(
+        reverse("christmas:event_detail", args=[sponsorship.event_id])
+    )
+    checklist_url = reverse(
+        "christmas:event_checklist_pdf",
+        args=[sponsorship.event_id],
+    )
+
+    assert response.status_code == 200
+    assert (
+        f'href="{checklist_url}" target="_blank" rel="noopener noreferrer"'
+        in response.content.decode()
+    )
 
 
 @pytest.mark.django_db
@@ -463,6 +489,82 @@ def test_event_labels_pdf_returns_404_for_event_without_sponsorships(
     event = _create_event()
 
     response = client.get(reverse("christmas:event_labels_pdf", args=[event.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_event_checklist_pdf_requires_staff_access(client, django_user_model):
+    """Only staff users should access an event's conference checklist PDF."""
+    sponsorship = _create_sponsorship()
+    url = reverse("christmas:event_checklist_pdf", args=[sponsorship.event_id])
+
+    anonymous_response = client.get(url)
+    assert anonymous_response.status_code == 302
+    assert anonymous_response.headers["Location"].startswith(reverse("account_login"))
+
+    user = _create_user(django_user_model)
+    client.force_login(user)
+    assert client.get(url).status_code == 403
+
+
+@pytest.mark.django_db
+def test_event_checklist_pdf_returns_inline_pdf_for_event_sponsorships(
+    client,
+    django_user_model,
+    monkeypatch,
+):
+    """Staff users should receive an inline checklist containing event records."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    event = _create_event()
+    first = ChristmasSponsorship.objects.create(
+        event=event,
+        sponsor=_create_member(name="João Santos"),
+        child=_create_child(name="Ana Silva"),
+    )
+    second = ChristmasSponsorship.objects.create(
+        event=event,
+        sponsor=_create_member(name="Paulo Lima"),
+        child=_create_child(name="Beatriz Souza"),
+    )
+    _create_sponsorship()
+    captured = {}
+
+    def fake_generate_pdf(received_event, sponsorships):
+        """Capture checklist service arguments and return deterministic content."""
+        captured["event"] = received_event
+        captured["sponsorships"] = sponsorships
+        return b"%PDF-checklist"
+
+    monkeypatch.setattr(
+        "apps.christmas.views.generate_sponsorship_checklist_pdf",
+        fake_generate_pdf,
+    )
+
+    response = client.get(reverse("christmas:event_checklist_pdf", args=[event.pk]))
+
+    assert response.status_code == 200
+    assert response.content == b"%PDF-checklist"
+    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Disposition"] == (
+        f'inline; filename="natal-feliz-evento-{event.pk}-conferencia.pdf"'
+    )
+    assert captured["event"] == event
+    assert [item.pk for item in captured["sponsorships"]] == [first.pk, second.pk]
+
+
+@pytest.mark.django_db
+def test_event_checklist_pdf_returns_404_for_event_without_sponsorships(
+    client,
+    django_user_model,
+):
+    """Direct checklist access should fail when an event has no sponsorships."""
+    staff_user = _create_user(django_user_model, is_staff=True)
+    client.force_login(staff_user)
+    event = _create_event()
+
+    response = client.get(reverse("christmas:event_checklist_pdf", args=[event.pk]))
 
     assert response.status_code == 404
 
