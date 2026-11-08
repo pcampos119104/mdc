@@ -50,6 +50,16 @@ class Child(SoftDeleteModel):
         """Return the child name for admin and shell displays."""
         return self.name
 
+    @property
+    def age(self):
+        """Return the child's current age in completed years."""
+        today = timezone.localdate()
+        birthday_has_passed = (today.month, today.day) >= (
+            self.birth_date.month,
+            self.birth_date.day,
+        )
+        return today.year - self.birth_date.year - (not birthday_has_passed)
+
 
 class ChristmasEvent(models.Model):
     """Store a scheduled Natal Feliz event."""

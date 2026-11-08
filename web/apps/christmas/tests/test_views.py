@@ -789,8 +789,13 @@ def test_sponsor_remove_soft_deletes_record_and_preserves_sponsorship(
 def test_sponsorship_form_renders_searchable_member_and_child_choices(
     client,
     django_user_model,
+    monkeypatch,
 ):
     """The sponsorship form should enhance its existing choices with Alpine.js."""
+    monkeypatch.setattr(
+        "apps.christmas.models.timezone.localdate",
+        lambda: date(2026, 5, 12),
+    )
     staff_user = _create_user(django_user_model, is_staff=True)
     client.force_login(staff_user)
     event = _create_event()
@@ -807,6 +812,7 @@ def test_sponsorship_form_renders_searchable_member_and_child_choices(
     assert 'name="child"' in content
     assert "João Santos" in content
     assert "Ágata Silva" in content
+    assert "Ágata Silva — 8 anos" in content
     assert "Nenhum resultado encontrado." in content
 
 
@@ -949,8 +955,13 @@ def test_sponsorship_detail_returns_404_for_another_event(
 def test_child_list_renders_and_filters_by_contact_phone(
     client,
     django_user_model,
+    monkeypatch,
 ):
     """Child list should render and search normalized contact phone digits."""
+    monkeypatch.setattr(
+        "apps.christmas.models.timezone.localdate",
+        lambda: date(2026, 5, 11),
+    )
     staff_user = _create_user(django_user_model, is_staff=True)
     client.force_login(staff_user)
     matching_child = Child.objects.create(
@@ -981,6 +992,8 @@ def test_child_list_renders_and_filters_by_contact_phone(
     assert matching_child.name in content
     assert other_child.name not in content
     assert "12/05/2018" in content
+    assert "Idade" in content
+    assert "7 anos" in content
     assert "Tamanho da roupa" in content
     assert matching_child.contact_phone in content
     assert reverse("christmas:child_detail", args=[matching_child.pk]) in content
@@ -1084,8 +1097,12 @@ def test_child_create_rejects_invalid_submission(client, django_user_model):
 
 
 @pytest.mark.django_db
-def test_child_detail_renders_registration(client, django_user_model):
+def test_child_detail_renders_registration(client, django_user_model, monkeypatch):
     """Child detail should display all campaign registration data."""
+    monkeypatch.setattr(
+        "apps.christmas.models.timezone.localdate",
+        lambda: date(2026, 5, 12),
+    )
     staff_user = _create_user(django_user_model, is_staff=True)
     client.force_login(staff_user)
     child = _create_child()
@@ -1101,6 +1118,8 @@ def test_child_detail_renders_registration(client, django_user_model):
     assert child.mother_name in content
     assert child.contact_phone in content
     assert "12/05/2018" in content
+    assert "Idade" in content
+    assert "8 anos" in content
     assert "Tamanho da roupa" in content
     assert ">8<" in content
     assert reverse("christmas:child_update", args=[child.pk]) in content

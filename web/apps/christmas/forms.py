@@ -38,6 +38,13 @@ def _time_input():
     )
 
 
+def _child_choice_label(child):
+    """Return a child choice label with the current age."""
+    age = child.age
+    age_unit = "ano" if age == 1 else "anos"
+    return f"{child.name} — {age} {age_unit}"
+
+
 class ChildForm(forms.ModelForm):
     """Validate the registration data for a Natal Feliz child."""
 
@@ -180,6 +187,7 @@ class ChristmasSponsorshipForm(forms.ModelForm):
         self.fields["child"].queryset = Child.objects.exclude(
             pk__in=unavailable_children.values("child_id")
         ).order_by("name")
+        self.fields["child"].label_from_instance = _child_choice_label
         self.fields["child"].error_messages["invalid_choice"] = (
             "Esta criança já possui um padrinho neste evento."
         )

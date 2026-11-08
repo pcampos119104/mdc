@@ -1,5 +1,7 @@
 """Tests for Natal Feliz sponsorship label generation."""
 
+import re
+import subprocess
 from datetime import date, time
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -83,12 +85,16 @@ def test_labels_html_contains_complete_label_information():
     assert html.count('<p class="event-name">Natal Feliz 2026</p>') == 13
     assert '<h2 class="child-name">CRIANÇA 1</h2>' in html
     assert "font-size: 28pt" in html
-    assert "margin: 6mm 0 3.75mm" in html
+    assert "margin: 3mm 0 2mm" in html
     assert "font-size: 14.5pt" in html
     assert "text-transform: uppercase" in html
     assert "width: 21mm" in html
     assert "height: 21mm" in html
-    assert "padding: 3mm 0" in html
+    assert "min-height: 21mm" in html
+    assert "padding: 2mm 0" in html
+    assert "break-inside: avoid-page" in html
+    assert "page-break-inside: avoid" in html
+    assert "\n        break-inside: avoid;\n" not in html
     assert "<strong>Mãe:</strong> Mãe 1" in html
     assert "<strong>Padrinho:</strong> Padrinho 1" in html
     assert "<strong>Idade:</strong> 8 anos" in html
@@ -147,3 +153,54 @@ def test_pdf_generation_uses_a4_portrait_playwright_options(monkeypatch):
         prefer_css_page_size=True,
     )
     browser.close.assert_called_once_with()
+
+
+def test_pdf_keeps_wrapped_labels_on_their_expected_pages(tmp_path):
+    """Wrapped label content should not move or overlap the following page."""
+    event = SimpleNamespace(
+        name="Natal Feliz 2026",
+        event_date=date(2026, 12, 12),
+        event_time=time(10, 30),
+        label_note="1 Roupa, 1 Brinquedo, 1 Cx de Bombom",
+    )
+    sponsorships = [_sponsorship(number) for number in range(1, 34)]
+    wrapped_content = {
+        12: (
+            "Agatha Sophia Campos Machado Silva",
+            "Victória Beatriz Maria da Silva Oliveira",
+        ),
+        18: (
+            "Isaac Rodrigues da Silva",
+            "Francisca Ecielda Siqueira Moreira",
+        ),
+        30: (
+            "Maria Júlia Pedro Costa",
+            "Walquíria Batista dos Santos Trindade",
+        ),
+    }
+    for number, (child_name, sponsor_name) in wrapped_content.items():
+        sponsorships[number - 1].child.name = child_name
+        sponsorships[number - 1].sponsor.name = sponsor_name
+
+    pdf_path = tmp_path / "labels.pdf"
+    pdf_path.write_bytes(labels.generate_sponsorship_labels_pdf(event, sponsorships))
+    result = subprocess.run(
+        ["pdftotext", "-layout", str(pdf_path), "-"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    page_numbers = [
+        [int(number) for number in re.findall(r"Nº\s+(\d+)", page)]
+        for page in result.stdout.split("\f")
+        if page.strip()
+    ]
+
+    assert page_numbers == [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 10, 11, 12],
+        [13, 14, 15, 16, 17, 18],
+        [19, 20, 21, 22, 23, 24],
+        [25, 26, 27, 28, 29, 30],
+        [31, 32, 33],
+    ]

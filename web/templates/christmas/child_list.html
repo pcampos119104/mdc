@@ -47,6 +47,7 @@
                 <th scope="col" class="px-5 py-4 font-semibold">Mãe</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Telefone</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Data de nascimento</th>
+                <th scope="col" class="px-5 py-4 font-semibold">Idade</th>
                 <th scope="col" class="px-5 py-4 font-semibold">Tamanho da roupa</th>
                 <th scope="col" class="px-5 py-4 text-right font-semibold">Ações</th>
               </tr>
@@ -65,6 +66,7 @@
                   <td class="px-5 py-4">{{ child.mother_name }}</td>
                   <td class="px-5 py-4">{{ child.contact_phone|default:"Não informado" }}</td>
                   <td class="px-5 py-4">{{ child.birth_date|date:"d/m/Y" }}</td>
+                  <td class="px-5 py-4">{{ child.age }} ano{{ child.age|pluralize:"s" }}</td>
                   <td class="px-5 py-4">{{ child.clothing_size|default_if_none:"Não informado" }}</td>
                   <td class="px-5 py-4 text-right">
                     <div class="flex justify-end gap-2">
@@ -76,7 +78,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="6" class="px-5 py-12 text-center">
+                  <td colspan="7" class="px-5 py-12 text-center">
                     <p class="text-base font-semibold text-slate-950">Nenhuma criança encontrada</p>
                     <p class="mt-2 text-sm text-slate-500">Crie um novo cadastro ou ajuste a busca.</p>
                   </td>

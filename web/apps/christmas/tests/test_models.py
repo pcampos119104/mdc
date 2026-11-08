@@ -89,6 +89,21 @@ def test_child_fields_expose_help_texts():
     )
 
 
+@pytest.mark.parametrize(
+    ("today", "expected_age"),
+    [
+        (date(2026, 5, 11), 7),
+        (date(2026, 5, 12), 8),
+    ],
+)
+def test_child_age_uses_completed_years(monkeypatch, today, expected_age):
+    """Child age should change only when the birthday is reached."""
+    monkeypatch.setattr("apps.christmas.models.timezone.localdate", lambda: today)
+    child = Child(birth_date=date(2018, 5, 12))
+
+    assert child.age == expected_age
+
+
 @pytest.mark.django_db
 def test_child_rejects_invalid_contact_phone():
     """Child should reject contact phones outside the supported digit range."""
