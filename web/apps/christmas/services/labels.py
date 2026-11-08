@@ -25,7 +25,7 @@ def build_sponsorship_label_pages(event, sponsorships):
     entries = [
         {
             "number": number,
-            "sponsor_name": sponsorship.sponsor.name,
+            "sponsor_name": sponsorship.sponsor.name.title(),
             "child_name": sponsorship.child.name,
             "mother_name": sponsorship.child.mother_name,
             "age": calculate_age_on_date(

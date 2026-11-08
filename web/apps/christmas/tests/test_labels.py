@@ -57,6 +57,17 @@ def test_label_numbers_are_sequential_regardless_of_sponsorship_ids():
     ]
 
 
+def test_label_formats_each_word_of_sponsor_name():
+    """Sponsor names should be printed with title-style capitalization."""
+    event = SimpleNamespace(event_date=date(2026, 12, 20))
+    sponsorship = _sponsorship(1)
+    sponsorship.sponsor.name = "jOÃO cARLOS DA sILVA"
+
+    pages = labels.build_sponsorship_label_pages(event, [sponsorship])
+
+    assert pages[0][0]["sponsor_name"] == "João Carlos Da Silva"
+
+
 def test_age_is_calculated_on_event_date():
     """A child's age should reflect whether their birthday passed by the event."""
     birth_date = date(2018, 12, 21)
