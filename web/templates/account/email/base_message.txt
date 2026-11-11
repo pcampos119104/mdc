@@ -1,0 +1,7 @@
+{% autoescape off %}Olá!
+
+{% block content %}{% endblock content %}
+
+Atenciosamente,
+Comuna Bristol
+{% endautoescape %}

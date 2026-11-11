@@ -561,7 +561,7 @@ def test_member_create_renders_photo_field_errors(client, django_user_model):
     assert 'id="id_photo"' in content
     assert 'accept="image/*"' in content
     assert 'id="id_photo-errors"' in content
-    assert "Upload a valid image." in content
+    assert "Envie uma imagem válida." in content
     assert Member.objects.count() == 0
 
 

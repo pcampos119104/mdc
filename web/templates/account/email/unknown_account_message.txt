@@ -1,0 +1,9 @@
+{% extends "account/email/base_message.txt" %}
+
+{% block content %}Recebemos uma solicitação de recuperação de senha para o endereço {{ email }}, mas não encontramos uma conta cadastrada com esse e-mail.
+
+Confira se o endereço foi informado corretamente. Caso ainda não tenha uma conta, você pode criar seu acesso pelo link abaixo:
+
+{{ signup_url }}
+
+Se você não fez essa solicitação, ignore este e-mail.{% endblock content %}
